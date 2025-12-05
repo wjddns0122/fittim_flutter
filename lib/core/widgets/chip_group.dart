@@ -20,45 +20,45 @@ class ChipGroup extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Label
         Text(
           label,
           style: const TextStyle(
-            fontSize:
-                16, // Assuming similar to React defaults or slight increase for better mobile read
-            fontWeight: FontWeight.w400,
-            color: AppColors.textPrimary,
+            fontSize: 12, // text-[12px]
+            fontWeight: FontWeight.w300, // font-light
+            letterSpacing: 0.6, // tracking-[0.05em] ~ 12 * 0.05
+            color: Color(0xFF6B6B6B),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 12), // mb-3
         Wrap(
-          spacing: 8,
+          spacing: 8, // gap-2
           runSpacing: 8,
           children: chips.map((chip) {
             final isSelected = selected == chip;
             return GestureDetector(
               onTap: () => onSelect(chip),
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                  horizontal: 20,
                   vertical: 10,
-                ),
+                ), // px-5 py-2.5
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF1A1A1A)
-                      : Colors.white, // Selected Black, Unselected White
-                  borderRadius: BorderRadius.circular(100), // Rounded Full
+                  color: isSelected ? AppColors.primary : Colors.white,
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF1A1A1A)
-                        : const Color(0xFFEAEAEA),
+                        ? AppColors.primary
+                        : const Color(0xFFE0E0E0),
                   ),
+                  borderRadius: BorderRadius.circular(100), // rounded-full
                 ),
                 child: Text(
                   chip,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : const Color(0xFF1A1A1A),
-                    fontSize: 13,
+                    fontSize: 13, // text-[13px]
                     fontWeight: FontWeight.w300,
+                    color: isSelected ? Colors.white : AppColors.primary,
                   ),
                 ),
               ),

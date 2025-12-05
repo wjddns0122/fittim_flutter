@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/user_controller.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/info_card.dart';
+import '../../core/widgets/style_chip.dart';
 
 class MyPage extends GetView<UserController> {
   const MyPage({super.key});
@@ -12,177 +14,256 @@ class MyPage extends GetView<UserController> {
       Get.put(UserController());
     }
 
+    // Mock Data to match React
+    final userInfo = [
+      {'label': '키', 'value': '175cm'},
+      {'label': '몸무게', 'value': '68kg'},
+      {'label': '체형', 'value': '보통'},
+    ];
+    final preferredStyles = ['미니멀', '스트릿', '꾸안꾸', '페미닌', '캐주얼'];
+    final preferredMalls = ['무신사', '에이블리', '지그재그', '29CM', 'W컨셉'];
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text(
-          'My',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w400,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false, // Left align per React
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.settings_outlined,
-              color: AppColors.textPrimary,
-            ),
-            onPressed: () {},
-          ),
-        ],
-      ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Profile Section
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 16,
+                bottom: 24,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'My',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+                  ),
+                  IconButton(
+                    onPressed: () {}, // onSettings placeholder
+                    icon: const Icon(
+                      Icons.settings_outlined,
+                      color: AppColors.textPrimary,
+                      size: 20,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+
+            // Scrollable Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 80),
                 child: Column(
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: const BoxDecoration(
-                        color: AppColors.surface, // #F7F7F7
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.person_outline,
-                        size: 36,
-                        color: AppColors.textHint,
+                    // Profile Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: const BoxDecoration(
+                              color: AppColors.surface,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.person_outline,
+                              size: 36,
+                              color: AppColors.textHint,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Obx(
+                            () => Text(
+                              controller.user.value?.nickname ??
+                                  '김민수', // Default to React mock logic
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'FITTIM, Fit ME.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w300,
+                              color: AppColors.textHint,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Obx(
-                      () => Text(
-                        controller.user.value?.nickname ?? 'Unknown User',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.textPrimary,
-                        ),
+
+                    const Divider(
+                      thickness: 8,
+                      color: AppColors.surface,
+                      height: 24,
+                    ), // Thick divider
+                    // Info Section
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                '내 정보',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              Text(
+                                '편집',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w300,
+                                  color: AppColors.textHint,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: userInfo
+                                .map(
+                                  (info) => Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      child: InfoCard(
+                                        label: info['label']!,
+                                        value: info['value']!,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'FITTIM, Fit ME.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w300,
-                        color: AppColors.textHint,
-                        letterSpacing: 0.6,
-                      ), // tracking 0.05em
+
+                    // Style Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '스타일',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '선호 스타일',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w300,
+                              color: Color(0xFF6B6B6B),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: preferredStyles
+                                .map((s) => StyleChip(label: s))
+                                .toList(),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            '선호 쇼핑몰',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w300,
+                              color: Color(0xFF6B6B6B),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: preferredMalls
+                                .map((s) => StyleChip(label: s))
+                                .toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+                    const Divider(
+                      thickness: 8,
+                      color: AppColors.surface,
+                      height: 24,
+                    ),
+
+                    // App Settings
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '앱 설정',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          _buildSettingItem('코디 히스토리'),
+                          _buildSettingItem('알림 설정'),
+                          _buildSettingItem('언어'),
+                          _buildSettingItem('로그아웃', onTap: controller.logout),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-
-              const Divider(thickness: 8, color: AppColors.surface), // Divider
-              // Menu Options
-              _buildMenuSection(
-                title: '내 정보',
-                children: [_buildMenuItem(context, '편집', onTap: () {})],
-              ),
-
-              const Divider(thickness: 8, color: AppColors.surface),
-
-              _buildMenuSection(
-                title: '앱 설정',
-                children: [
-                  _buildMenuItem(
-                    context,
-                    '코디 히스토리',
-                    onTap: () {},
-                    showArrow: true,
-                  ),
-                  _buildMenuItem(
-                    context,
-                    '알림 설정',
-                    onTap: () {},
-                    showArrow: true,
-                  ),
-                  _buildMenuItem(context, '언어', onTap: () {}, showArrow: true),
-                  _buildMenuItem(
-                    context,
-                    '로그아웃',
-                    onTap: controller.logout,
-                    showArrow: true,
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildMenuSection({
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuItem(
-    BuildContext context,
-    String title, {
-    required VoidCallback onTap,
-    bool showArrow = false,
-  }) {
+  Widget _buildSettingItem(String label, {VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w300,
-                color: AppColors.textPrimary,
-              ),
+              label,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w300),
             ),
-            if (showArrow)
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.textHint,
-                size: 20,
-              )
-            else if (title == '편집')
-              const Text(
-                '편집',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w300,
-                  color: AppColors.textHint,
-                ),
-              ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.textHint,
+              size: 20,
+            ),
           ],
         ),
       ),

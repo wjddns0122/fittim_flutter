@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
-class TagChip extends StatelessWidget {
-  final String text;
+class StyleChip extends StatelessWidget {
+  final String label;
 
-  const TagChip({super.key, required this.text});
+  const StyleChip({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 10,
+      ), // px-4 py-2.5
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F7F7),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: Text(
-        text,
+        label,
         style: const TextStyle(
           color: AppColors.textPrimary,
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: FontWeight.w300,
         ),
       ),

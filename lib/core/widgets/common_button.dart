@@ -8,7 +8,7 @@ class CommonButton extends StatelessWidget {
   final Color? backgroundColor;
   final Color? textColor;
   final bool isLoading;
-  final bool isRoundedFull; // Added for Auth styling
+  final bool isRoundedFull;
 
   const CommonButton({
     super.key,
@@ -30,7 +30,8 @@ class CommonButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? AppColors.primary,
           foregroundColor: textColor ?? Colors.white,
-          disabledBackgroundColor: AppColors.muted,
+          disabledBackgroundColor:
+              AppColors.border, // Replaced muted with border or similar gray
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(isRoundedFull ? 100 : 10),
