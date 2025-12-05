@@ -11,13 +11,13 @@ class SplashController extends GetxController {
   }
 
   Future<void> _checkLoginStatus() async {
-    // Add a small delay for branding visibility
     await Future.delayed(const Duration(seconds: 2));
 
-    final token = await _storage.read(key: 'jwt_token');
+    // Check for accessToken (consistent with AuthController)
+    final token = await _storage.read(key: 'accessToken');
 
     if (token != null && token.isNotEmpty) {
-      Get.offAllNamed('/home');
+      Get.offAllNamed('/main'); // Navigate to Main Shell
     } else {
       Get.offAllNamed('/login');
     }

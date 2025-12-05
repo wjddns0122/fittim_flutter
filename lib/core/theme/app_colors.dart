@@ -1,39 +1,29 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Extracted from src/index.css
-  static const Color black = Color(0xFF000000); // --color-black
-  static const Color white = Color(0xFFFFFFFF); // --color-white
-  static const Color gray100 = Color(0xFFF3F4F6); // --color-gray-100 (approx)
-  static const Color red500 = Color(0xFFEF4444); // --color-red-500 (approx)
-  static const Color red600 = Color(0xFFDC2626); // --color-red-600 (approx)
+  // Extracted from src/index.css (Updated based on Wardrobe analysis)
 
-  // Semantic Aliases
-  static const Color primary = black;
-  static const Color background = white;
-  static const Color surface = gray100;
-  static const Color error = red500;
+  // --primary: #030213 -> Main dark #1A1A1A used in Wardrobe
+  static const Color primary = Color(0xFF1A1A1A);
 
-  static const Color textPrimary = black;
-  static const Color textInverse = white;
-  static const Color textHint = Color(
-    0xFF9CA3AF,
-  ); // Gray 400 (Standard fallback)
-  static const Color textSecondary = Color(
-    0xFF4B5563,
-  ); // Gray 600 (Standard fallback)
+  static const Color background = Color(0xFFFFFFFF);
 
-  static const Color border = Color(0xFFE5E7EB); // Gray 200 (Standard fallback)
+  // --input-background: #f3f3f5
+  static const Color surface = Color(0xFFF7F7F7); // bg-[#F7F7F7]
+  static const Color surfaceBorder = Color(0xFFF0F0F0); // border-[#F0F0F0]
 
-  // Legacy/Custom Mappings for existing code
-  static const Color backgroundPrimary = background;
-  static const Color backgroundSecondary = surface;
-  static const Color buttonPrimary = primary;
-  static const Color buttonText = textInverse;
+  static const Color muted = Color(0xFFECECF0);
 
-  // Kakao (External)
-  static const Color kakaoYellow = Color(0xFFFEE500);
-  static const Color kakaoText = Color(0xFF000000);
+  // FAB Color
+  static const Color brandBlue = Color(0xFF74A8FF); // #74A8FF
 
-  static const Color destructive = red600;
+  static const Color error = Color(0xFFD4183D);
+
+  static const Color textPrimary = Color(0xFF1A1A1A);
+  static const Color textSecondary = Color(0xFF9C9C9C); // Inactive Tab
+  static const Color textHint = Color(0xFF9C9C9C);
+
+  static const Color textInverse = Color(0xFFFFFFFF);
+
+  static const Color border = Color(0xFFF0F0F0);
 }

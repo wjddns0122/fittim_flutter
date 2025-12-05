@@ -29,7 +29,6 @@ class WardrobeController extends GetxController {
     if (selectedCategory.value == 'ALL') {
       return items;
     }
-    // Filter by item.category matching code
     return items
         .where((item) => item.category == selectedCategory.value)
         .toList();
@@ -48,7 +47,8 @@ class WardrobeController extends GetxController {
   Future<void> fetchItems() async {
     try {
       isLoading.value = true;
-      final token = await _storage.read(key: 'jwt_token');
+      // Fixed: Check 'accessToken'
+      final token = await _storage.read(key: 'accessToken');
 
       if (token == null) {
         Get.offAllNamed('/login');
@@ -78,20 +78,19 @@ class WardrobeController extends GetxController {
   ) async {
     try {
       isLoading.value = true;
-      final token = await _storage.read(key: 'jwt_token');
+      // Fixed: Check 'accessToken'
+      final token = await _storage.read(key: 'accessToken');
 
       if (token == null) {
         Get.offAllNamed('/login');
         return;
       }
 
-      // Map UI strings to Backend Codes
       final categoryMap = {
         '상의': 'TOP',
         '하의': 'BOTTOM',
         '아우터': 'OUTER',
-        '원피스':
-            'DRESS', // DRESS logic not explicitly in filter list, mapping to TOP for simplicity or add DRESS to filter
+        '원피스': 'DRESS',
         '신발': 'SHOES',
         '가방': 'ACC',
         '기타': 'ACC',
@@ -106,13 +105,9 @@ class WardrobeController extends GetxController {
         '사계절': 'ALL',
       };
 
-      // DRESS isn't in filter list but is common. Mapping DRESS to 'TOP' or 'BOTTOM' might be confusing.
-      // For now, let's assume filtering handles strictly equal strings.
-      // If categories list is strict, DRESS items won't show unless user selects ALL.
       final categoryCode = categoryMap[category] ?? 'ETC';
       final seasonCode = seasonMap[season] ?? 'ALL';
 
-      // Use fromBytes for Web compatibility
       final bytes = await imageFile.readAsBytes();
       final String fileName = imageFile.name;
 
@@ -129,14 +124,11 @@ class WardrobeController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.back(); // Close dialog if open
+        Get.back();
         Get.snackbar('성공', '옷이 등록되었습니다.');
 
-        // Refresh items
         await fetchItems();
 
-        // Switch to the uploaded category so the user sees their new item immediately
-        // BUT check if the categoryCode exists in our filter list.
         if (categories.contains(categoryCode)) {
           selectedCategory.value = categoryCode;
         } else {
@@ -157,10 +149,7 @@ class WardrobeController extends GetxController {
 
   String getFullImageUrl(String relativePath) {
     if (relativePath.startsWith('http')) return relativePath;
-
     final baseUrl = ApiProvider.baseUrl;
-
-    // Ensure correct slashing
     if (relativePath.startsWith('/')) {
       return '$baseUrl$relativePath';
     }

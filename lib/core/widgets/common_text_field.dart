@@ -6,64 +6,69 @@ class CommonTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String? hintText;
   final bool obscureText;
-  final String? Function(String?)? validator;
+  final String? labelText;
+  final Widget? prefixIcon;
   final TextInputType? keyboardType;
+  final String? Function(String?)? validator;
+  final bool isRoundedFull; // Added for Auth styling
 
   const CommonTextField({
     super.key,
     this.controller,
     this.hintText,
     this.obscureText = false,
-    this.validator,
+    this.labelText,
+    this.prefixIcon,
     this.keyboardType,
+    this.validator,
+    this.isRoundedFull = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(isRoundedFull ? 100 : 10);
+
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
-      validator: validator,
       keyboardType: keyboardType,
-      style: AppTextStyles.body1, // 16px Normal
-      cursorColor: AppColors.primary,
+      validator: validator,
+      style: AppTextStyles.body1.copyWith(
+        color: AppColors.textPrimary,
+        fontWeight: FontWeight.w300,
+      ),
       decoration: InputDecoration(
+        labelText: labelText,
         hintText: hintText,
-        hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textHint),
+        hintStyle: AppTextStyles.body2.copyWith(color: AppColors.textHint),
+        prefixIcon: prefixIcon,
+        fillColor: isRoundedFull
+            ? const Color(0xFFFAFAFA)
+            : AppColors.surface, // React Auth uses FAFAFA
         filled: true,
-        fillColor: AppColors.surface, // Gray 100
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
+          horizontal: 20,
           vertical: 16,
         ),
-
-        // Default Border (None or very subtle)
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
+          borderRadius: borderRadius,
+          borderSide: BorderSide(
+            color: isRoundedFull ? const Color(0xFFEAEAEA) : AppColors.border,
+          ),
         ),
-
-        // Enabled Border (Subtle)
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none, // Flat style as per minimalist design
+          borderRadius: borderRadius,
+          borderSide: BorderSide(
+            color: isRoundedFull ? const Color(0xFFEAEAEA) : AppColors.border,
+          ),
         ),
-
-        // Focused Border (Primary Color)
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1),
+          borderRadius: borderRadius,
+          borderSide: const BorderSide(color: AppColors.primary),
         ),
-
-        // Error Border (Red 500)
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.error, width: 1),
-        ),
-
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.error, width: 1),
+          borderRadius: borderRadius,
+          borderSide: const BorderSide(color: AppColors.error),
         ),
       ),
     );

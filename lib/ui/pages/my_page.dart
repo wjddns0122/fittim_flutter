@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/user_controller.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
 
 class MyPage extends GetView<UserController> {
   const MyPage({super.key});
@@ -14,92 +13,177 @@ class MyPage extends GetView<UserController> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('마이페이지'),
-        backgroundColor: AppColors.background,
+        title: const Text(
+          'My',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w400,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
-        titleTextStyle: AppTextStyles.headline2,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        centerTitle: false, // Left align per React
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.settings_outlined,
+              color: AppColors.textPrimary,
+            ),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 40),
-
-              // Profile Icon
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.border),
+              // Profile Section
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: const BoxDecoration(
+                        color: AppColors.surface, // #F7F7F7
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.person_outline,
+                        size: 36,
+                        color: AppColors.textHint,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Obx(
+                      () => Text(
+                        controller.user.value?.nickname ?? 'Unknown User',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'FITTIM, Fit ME.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w300,
+                        color: AppColors.textHint,
+                        letterSpacing: 0.6,
+                      ), // tracking 0.05em
+                    ),
+                  ],
                 ),
-                child: const Icon(
-                  Icons.person,
-                  size: 50,
+              ),
+
+              const Divider(thickness: 8, color: AppColors.surface), // Divider
+              // Menu Options
+              _buildMenuSection(
+                title: '내 정보',
+                children: [_buildMenuItem(context, '편집', onTap: () {})],
+              ),
+
+              const Divider(thickness: 8, color: AppColors.surface),
+
+              _buildMenuSection(
+                title: '앱 설정',
+                children: [
+                  _buildMenuItem(
+                    context,
+                    '코디 히스토리',
+                    onTap: () {},
+                    showArrow: true,
+                  ),
+                  _buildMenuItem(
+                    context,
+                    '알림 설정',
+                    onTap: () {},
+                    showArrow: true,
+                  ),
+                  _buildMenuItem(context, '언어', onTap: () {}, showArrow: true),
+                  _buildMenuItem(
+                    context,
+                    '로그아웃',
+                    onTap: controller.logout,
+                    showArrow: true,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuSection({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(
+    BuildContext context,
+    String title, {
+    required VoidCallback onTap,
+    bool showArrow = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            if (showArrow)
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.textHint,
+                size: 20,
+              )
+            else if (title == '편집')
+              const Text(
+                '편집',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w300,
                   color: AppColors.textHint,
                 ),
               ),
-
-              const SizedBox(height: 20),
-
-              // User Info
-              Obx(() {
-                if (controller.isLoading.value) {
-                  return const CircularProgressIndicator();
-                }
-                return Column(
-                  children: [
-                    Text(
-                      controller.nickname.value,
-                      style: AppTextStyles.headline1,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      controller.email.value,
-                      style: AppTextStyles.body1.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                );
-              }),
-
-              const Spacer(),
-
-              // Logout Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: controller.logout,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.error, // Destructive text color
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: AppColors.border),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    '로그아웃',
-                    style: AppTextStyles.button.copyWith(
-                      color: AppColors.error,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-            ],
-          ),
+          ],
         ),
       ),
     );

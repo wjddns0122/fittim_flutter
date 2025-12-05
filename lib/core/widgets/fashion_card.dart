@@ -22,34 +22,36 @@ class FashionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Image Section
-          Expanded(
-            // Changed from AspectRatio to Expanded to fill available space in Grid
+          // Image Section (Aspect Square 1:1)
+          AspectRatio(
+            aspectRatio: 1,
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.surface, // Placeholder background
-                borderRadius: BorderRadius.circular(
-                  12,
-                ), // Slightly softer than inputs
+                color: AppColors.surface, // #F7F7F7
+                borderRadius: BorderRadius.circular(16), // rounded-2xl
+                border: Border.all(
+                  color: AppColors.surfaceBorder,
+                  width: 1,
+                ), // border-[#F0F0F0]
                 boxShadow: const [
                   BoxShadow(
                     color: Color(
-                      0x0A000000,
-                    ), // Very subtle shadow (opacity ~4%)
-                    offset: Offset(0, 4),
-                    blurRadius: 10,
+                      0x0D000000,
+                    ), // Colors.black with ~5% opacity (0.05 * 255 ≈ 13 -> 0D)
+                    offset: Offset(0, 1),
+                    blurRadius: 2,
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return const Center(
                       child: Icon(
-                        Icons.checkroom, // Fallback icon
+                        Icons.checkroom,
                         color: AppColors.textHint,
                         size: 32,
                       ),
@@ -71,17 +73,19 @@ class FashionCard extends StatelessWidget {
 
           // Title Section
           if (title != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              title!,
-              style: AppTextStyles.body2.copyWith(
-                // 14px for cards
-                fontWeight: FontWeight.w500, // Medium for readability
-                color: AppColors.textPrimary,
+            const SizedBox(height: 10), // mb-2.5 is approx 10px
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4), // px-1
+              child: Text(
+                title!,
+                style: AppTextStyles.body2.copyWith(
+                  fontSize: 13, // text-[13px]
+                  fontWeight: FontWeight.w300, // font-light
+                  color: AppColors.textPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
             ),
           ],
         ],

@@ -1,134 +1,88 @@
-import 'dart:convert';
-import 'package:fittim_flutter/data/api_provider.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../data/api_provider.dart';
 
 class AuthController extends GetxController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final nameController = TextEditingController(); // Nickname
 
-  final _storage = const FlutterSecureStorage();
-  final RxBool isLoading = false.obs;
+  final isLoading = false.obs;
+  final storage = const FlutterSecureStorage();
 
-  final nameController = TextEditingController(); // For registration
-
-  // Placeholder for API URL - replace with actual env variable or constant
-  // API URL from ApiProvider
-  static String get _baseUrl => ApiProvider.baseUrl;
+  // Added for Password Toggle
+  final isPasswordVisible = false.obs;
+  void togglePasswordVisibility() =>
+      isPasswordVisible.value = !isPasswordVisible.value;
 
   Future<void> login() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      Get.snackbar(
-        '오류',
-        '이메일과 비밀번호를 모두 입력해주세요.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      Get.snackbar('Error', 'Please enter email and password');
       return;
     }
 
     try {
       isLoading.value = true;
-
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/auth/login'),
+        Uri.parse('${ApiProvider.baseUrl}/api/auth/login'), // Fixed Path
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
+        body: jsonEncode({
+          'email': emailController.text,
+          'password': passwordController.text,
+        }),
       );
 
       if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes);
-
-        try {
-          final data = jsonDecode(decodedBody);
-          final token =
-              data['accessToken']; // Updated key based on user request
-
-          if (token != null) {
-            await _storage.write(key: 'jwt_token', value: token);
-            Get.offAllNamed('/main'); // Navigate to main shell
-          } else {
-            _showError('로그인 실패: 토큰이 없습니다.');
-          }
-        } catch (e) {
-          _showError('응답 파싱 오류: $e');
-        }
+        final data = jsonDecode(response.body);
+        final token = data['accessToken'];
+        await storage.write(key: 'accessToken', value: token);
+        Get.offAllNamed('/main');
       } else {
-        _showError('로그인 실패: ${response.body}');
+        Get.snackbar(
+          'Login Failed',
+          'Check your credentials (Status: ${response.statusCode})',
+        );
       }
     } catch (e) {
-      _showError('네트워크 오류가 발생했습니다: $e');
+      Get.snackbar('Error', 'An error occurred: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> register() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-    final name = nameController.text.trim();
-
-    if (email.isEmpty || password.isEmpty || name.isEmpty) {
-      Get.snackbar('오류', '모든 필드를 입력해주세요.', snackPosition: SnackPosition.BOTTOM);
+    if (emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        nameController.text.isEmpty) {
+      Get.snackbar('Error', 'Please fill all fields');
       return;
     }
 
     try {
       isLoading.value = true;
-
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/auth/signup'),
+        Uri.parse('${ApiProvider.baseUrl}/api/auth/signup'), // Fixed Path
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': email,
-          'password': password,
-          'username':
-              name, // Changed from user_name or name to 'username' based on common convention, assuming BACKEND changed to require this.
-          // WAIT! The user prompt says Validation failed for nickname.
-          // The error message is validation failed for 'nickname'.
-          // So the backend expects 'nickname'.
-          'nickname': name, // Explicitly adding nickname field
+          'email': emailController.text,
+          'password': passwordController.text,
+          'nickname': nameController.text,
         }),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar(
-          '성공',
-          '회원가입이 완료되었습니다. 로그인해주세요.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        Get.offNamed('/login'); // Retrieve to login
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Account created! Please login.');
+        Get.offNamed('/login');
       } else {
-        _showError('회원가입 실패: ${response.body}');
+        Get.snackbar('Register Failed', 'Error: ${response.statusCode}');
       }
     } catch (e) {
-      _showError('네트워크 오류가 발생했습니다: $e');
+      Get.snackbar('Error', 'An error occurred: $e');
     } finally {
       isLoading.value = false;
     }
-  }
-
-  void _showError(String message) {
-    Get.snackbar(
-      '오류',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: CupertinoColors.systemRed.withAlpha(
-        25,
-      ), // 0.1 * 255 approx 25
-      colorText: CupertinoColors.systemRed,
-    );
-  }
-
-  @override
-  void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
-    nameController.dispose();
-    super.onClose();
   }
 }

@@ -4,42 +4,56 @@ import '../theme/app_text_styles.dart';
 
 class CommonButton extends StatelessWidget {
   final String text;
-  final VoidCallback? onPressed;
-  final bool isDisabled;
+  final VoidCallback onPressed;
   final Color? backgroundColor;
+  final Color? textColor;
+  final bool isLoading;
+  final bool isRoundedFull; // Added for Auth styling
 
   const CommonButton({
     super.key,
     required this.text,
-    this.onPressed,
-    this.isDisabled = false,
+    required this.onPressed,
     this.backgroundColor,
+    this.textColor,
+    this.isLoading = false,
+    this.isRoundedFull = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 56, // Standard touch target
       width: double.infinity,
+      height: 52, // React seems to use py-4 which is quite tall
       child: ElevatedButton(
-        onPressed: isDisabled ? null : onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? AppColors.primary,
-          disabledBackgroundColor: AppColors.surface, // Gray 100 for disabled
-          disabledForegroundColor:
-              AppColors.textHint, // Gray 400 for disabled text
+          foregroundColor: textColor ?? Colors.white,
+          disabledBackgroundColor: AppColors.muted,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8), // Aligned with input fields
+            borderRadius: BorderRadius.circular(isRoundedFull ? 100 : 10),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 14),
         ),
-        child: Text(
-          text,
-          style: AppTextStyles.button.copyWith(
-            color: isDisabled ? AppColors.textHint : AppColors.textInverse,
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Text(
+                text,
+                style: AppTextStyles.button.copyWith(
+                  color: textColor ?? Colors.white,
+                  fontWeight: FontWeight.w400, // React uses 400
+                  fontSize: 15, // React uses 15px
+                ),
+              ),
       ),
     );
   }

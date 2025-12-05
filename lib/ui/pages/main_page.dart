@@ -11,8 +11,6 @@ class MainPage extends GetView<MainController> {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure controller is registered if not already
-    // (Though usually done via binding or Get.put at route level)
     if (!Get.isRegistered<MainController>()) {
       Get.put(MainController());
     }
@@ -21,35 +19,81 @@ class MainPage extends GetView<MainController> {
       backgroundColor: AppColors.background,
       body: Obx(
         () => IndexedStack(
-          index: controller.currentIndex.value,
-          children: const [WardrobePage(), FitPage(), MyPage()],
+          index: controller.selectedIndex.value,
+          children: const [
+            // Home Tab PlaceHolder (React: Home Icon)
+            Center(child: Text("Home - Coming Soon")),
+
+            // Fit Tab (React: Sparkles Icon)
+            FitPage(),
+
+            // Wardrobe Tab (React: ShoppingBag Icon)
+            WardrobePage(),
+
+            // Shop Tab Placeholder (React: Store Icon)
+            Center(child: Text("Shop - Coming Soon")),
+
+            // My Tab (React: User Icon)
+            MyPage(),
+          ],
         ),
       ),
-      bottomNavigationBar: Obx(
-        () => Container(
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Color(0xFFEAEAEA), // border-t border-[#EAEAEA]
+              width: 1,
+            ),
           ),
-          child: BottomNavigationBar(
-            currentIndex: controller.currentIndex.value,
-            onTap: controller.changeTab,
-            backgroundColor: AppColors.background,
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: AppColors.textHint,
-            showSelectedLabels: false, // Minimal style as requested
-            showUnselectedLabels: false,
-            type: BottomNavigationBarType.fixed,
+        ),
+        child: Obx(
+          () => BottomNavigationBar(
+            currentIndex: controller.selectedIndex.value,
+            onTap: controller.changeIndex,
+            type: BottomNavigationBarType.fixed, // Ensure all items show
+            backgroundColor: Colors.white,
+            selectedItemColor: const Color(0xFF1A1A1A), // text-[#1A1A1A]
+            unselectedItemColor: const Color(0xFF9C9C9C), // text-[#9C9C9C]
+            selectedLabelStyle: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w300,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w300,
+            ),
             elevation: 0,
             items: const [
               BottomNavigationBarItem(
-                icon: Icon(Icons.checkroom),
+                icon: Icon(Icons.home_outlined), // Lucide: Home
+                activeIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.auto_awesome_outlined,
+                ), // Lucide: Sparkles (Fit)
+                activeIcon: Icon(Icons.auto_awesome),
+                label: 'Fit',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.checkroom_outlined,
+                ), // Lucide: ShoppingBag (Wardrobe) (Approx)
+                activeIcon: Icon(Icons.checkroom),
                 label: 'Wardrobe',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.style), // or auto_awesome_mosaic
-                label: 'Fit',
+                icon: Icon(Icons.storefront_outlined), // Lucide: Store
+                activeIcon: Icon(Icons.storefront),
+                label: 'Shop',
               ),
-              BottomNavigationBarItem(icon: Icon(Icons.person), label: 'My'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline), // Lucide: User
+                activeIcon: Icon(Icons.person),
+                label: 'My',
+              ),
             ],
           ),
         ),

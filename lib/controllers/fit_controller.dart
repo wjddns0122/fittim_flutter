@@ -1,80 +1,89 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
-import '../data/api_provider.dart';
 import '../data/models/fit_response.dart';
+import '../data/api_provider.dart';
 
 class FitController extends GetxController {
-  final _storage = const FlutterSecureStorage();
-  final Dio _dio = Dio();
+  final ApiProvider _apiProvider = ApiProvider();
 
-  final RxBool isLoading = false.obs;
-  final Rxn<FitResponse> recommendation = Rxn<FitResponse>();
+  final selectedSeason = '봄'.obs;
+  final selectedPlace = '데이트'.obs;
 
-  // Use these to display context in UI
-  final RxString selectedSeason = '봄'.obs;
-  final RxString selectedPlace = '데이트'.obs;
+  final recommendation = Rxn<FitResponse>();
+  final isLoading = false.obs;
+
+  List<String> getTags() {
+    return ['#${selectedSeason.value}', '#${selectedPlace.value}'];
+  }
+
+  String getFullImageUrl(String? path) {
+    if (path == null) return '';
+    if (path.startsWith('http')) return path;
+    return '${ApiProvider.baseUrl}/$path';
+  }
 
   Future<void> getRecommendation() async {
     try {
       isLoading.value = true;
-      final token = await _storage.read(key: 'jwt_token');
 
-      if (token == null) {
-        Get.offAllNamed('/login');
-        return;
-      }
+      String seasonCode = _mapSeasonToCode(selectedSeason.value);
+      String placeCode = _mapPlaceToCode(selectedPlace.value);
 
-      final seasonMap = {
-        '봄': 'SPRING',
-        '여름': 'SUMMER',
-        '가을': 'AUTUMN',
-        '겨울': 'WINTER',
-        '사계절': 'ALL',
-      };
-
-      final placeMap = {
-        '데이트': 'DATE',
-        '학교': 'SCHOOL',
-        '여행': 'TRAVEL',
-        '파티': 'PARTY',
-      };
-
-      final seasonCode = seasonMap[selectedSeason.value] ?? 'SPRING';
-      final placeCode = placeMap[selectedPlace.value] ?? 'DATE';
-
-      // Added placeCode to queryParameters
-      final response = await _dio.get(
-        '${ApiProvider.baseUrl}/api/recommendations',
+      final response = await _apiProvider.dio.get(
+        '/recommend/tpo',
         queryParameters: {'season': seasonCode, 'place': placeCode},
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200) {
         recommendation.value = FitResponse.fromJson(response.data);
       }
     } catch (e) {
-      Get.snackbar('오류', '추천을 받아오지 못했습니다: $e');
+      Get.snackbar('Error', 'Failed to get recommendation: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
   void saveLook() {
-    Get.snackbar(
-      '저장 완료',
-      '나만의 코디북에 저장되었습니다.',
-      duration: const Duration(seconds: 1),
-    );
+    Get.snackbar('Saved', 'Outfit saved to your lookbook');
   }
 
-  String getFullImageUrl(String? relativePath) {
-    if (relativePath == null) return '';
-    if (relativePath.startsWith('http')) return relativePath;
-    final baseUrl = ApiProvider.baseUrl;
-    if (relativePath.startsWith('/')) {
-      return '$baseUrl$relativePath';
+  void clearRecommendation() {
+    recommendation.value = null;
+  }
+
+  String _mapSeasonToCode(String season) {
+    switch (season) {
+      case '봄':
+        return 'SPRING';
+      case '여름':
+        return 'SUMMER';
+      case '가을':
+        return 'AUTUMN';
+      case '겨울':
+        return 'WINTER';
+      default:
+        return 'SPRING';
     }
-    return '$baseUrl/$relativePath';
+  }
+
+  String _mapPlaceToCode(String place) {
+    switch (place) {
+      case '데이트':
+        return 'DATE';
+      case '출근':
+        return 'WORK';
+      case '학교':
+        return 'SCHOOL';
+      case '여행':
+        return 'TRAVEL';
+      case '파티':
+        return 'PARTY';
+      case '카페':
+        return 'CAFE';
+      case '결혼식':
+        return 'WEDDING';
+      default:
+        return 'DAILY';
+    }
   }
 }

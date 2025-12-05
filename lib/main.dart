@@ -5,6 +5,9 @@ import 'ui/pages/login_page.dart';
 import 'ui/pages/register_page.dart';
 import 'ui/pages/splash_page.dart';
 import 'ui/pages/main_page.dart';
+import 'ui/pages/wardrobe_page.dart';
+import 'ui/pages/fit_page.dart';
+import 'controllers/auth_controller.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,20 +20,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'FITTIM',
-      theme: AppTheme.light, // Applying the global theme
+      theme: AppTheme.light,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/splash', // Splash handles the initial token check
+      initialRoute: '/splash',
       getPages: [
         GetPage(name: '/splash', page: () => const SplashPage()),
-        GetPage(name: '/login', page: () => const LoginPage()),
-        GetPage(name: '/register', page: () => const RegisterPage()),
         GetPage(
-          name: '/main',
-          page: () => const MainPage(),
-        ), // Shell with BottomNav
-        // Individual pages can still be accessed directly if needed, but usually via Main
-        // '/fit-result' is effectively inside /main -> FitPage currently,
-        // but we can add it if a standalone result page is needed later.
+          name: '/login',
+          page: () => const LoginPage(),
+          binding: BindingsBuilder(() {
+            Get.put(AuthController());
+          }),
+        ),
+        GetPage(name: '/register', page: () => const RegisterPage()),
+        GetPage(name: '/main', page: () => const MainPage()),
+        GetPage(name: '/wardrobe', page: () => const WardrobePage()),
+        GetPage(name: '/fit', page: () => const FitPage()),
       ],
     );
   }
