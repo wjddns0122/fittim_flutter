@@ -1,89 +1,59 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
-  // Base font
-  static TextStyle get _baseStyle => GoogleFonts.inter();
+  // Variables from CSS
+  static const double textBase = 16.0; // --text-base
+  static const double textLg = 18.0; // --text-lg
+  static const double textXl = 20.0; // --text-xl
+  static const double text2xl = 24.0; // --text-2xl
 
-  // Logo (42px, w200, tracking 0.2em)
-  static TextStyle get logo => _baseStyle.copyWith(
-    fontSize: 42,
-    fontWeight: FontWeight.w200,
-    letterSpacing: 8.4, // 0.2em * 42
+  static const FontWeight weightNormal =
+      FontWeight.w400; // --font-weight-normal
+  static const FontWeight weightMedium =
+      FontWeight.w500; // --font-weight-medium
+
+  static TextStyle get _baseStyle => GoogleFonts.inter(
     color: AppColors.textPrimary,
+    letterSpacing: -0.02, // Tight tracking often seen in modern UI
   );
 
-  // Hero Heading (28px, w300, leading 1.3)
-  static TextStyle get heroHeading => _baseStyle.copyWith(
-    fontSize: 28,
-    fontWeight: FontWeight.w300,
-    height: 1.3,
-    color: AppColors.textPrimary,
+  static TextStyle get headline1 =>
+      _baseStyle.copyWith(fontSize: text2xl, fontWeight: weightMedium);
+
+  static TextStyle get headline2 =>
+      _baseStyle.copyWith(fontSize: textXl, fontWeight: weightMedium);
+
+  static TextStyle get titleMedium =>
+      _baseStyle.copyWith(fontSize: textLg, fontWeight: weightMedium);
+
+  static TextStyle get body1 =>
+      _baseStyle.copyWith(fontSize: textBase, fontWeight: weightNormal);
+
+  static TextStyle get body2 => _baseStyle.copyWith(
+    fontSize: 14.0, // Small text (often .875rem)
+    fontWeight: weightNormal,
   );
 
-  // Title Medium (22px, w600)
-  static TextStyle get titleMedium => _baseStyle.copyWith(
-    fontSize: 22,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
+  static TextStyle get button => _baseStyle.copyWith(
+    fontSize: textBase,
+    fontWeight: weightMedium,
+    color: AppColors.textInverse,
   );
 
-  // Slogan (24px, w300, leading 1.4)
-  static TextStyle get slogan => _baseStyle.copyWith(
-    fontSize: 24,
-    fontWeight: FontWeight.w300,
-    height: 1.4,
-    color: AppColors.textPrimary,
-  );
-
-  // Temperature (20px, w300)
-  static TextStyle get temperature => _baseStyle.copyWith(
-    fontSize: 20,
-    fontWeight: FontWeight.w300,
-    color: AppColors.textPrimary,
-  );
-
-  // Body / Button (15px, w400/w300)
-  static TextStyle get body => _baseStyle.copyWith(
-    fontSize: 15,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textPrimary,
-  );
-
-  static TextStyle get buttonPrimary => _baseStyle.copyWith(
-    fontSize: 15,
-    fontWeight: FontWeight.w400,
-    color: AppColors.buttonText,
-  );
-
-  // Input Text (15px, w300)
-  static TextStyle get input => _baseStyle.copyWith(
-    fontSize: 15,
-    fontWeight: FontWeight.w300,
-    color: AppColors.textPrimary,
-  );
-
-  // Caption / Micro text (13px, w300, tracking 0.1em)
-  static TextStyle get caption => _baseStyle.copyWith(
-    fontSize: 13,
-    fontWeight: FontWeight.w300,
-    letterSpacing: 1.3, // 0.1em * 13
-    color: AppColors.textPrimary,
-  );
-
-  // Subtitle / Divider text (12px, w300)
-  static TextStyle get subtitle => _baseStyle.copyWith(
-    fontSize: 12,
-    fontWeight: FontWeight.w300,
-    color: AppColors.textSecondary,
-  );
-
-  // Tiny (11px, w300)
-  static TextStyle get tiny => _baseStyle.copyWith(
-    fontSize: 11,
-    fontWeight: FontWeight.w300,
-    color: AppColors.textSecondary,
-    height: 1.4,
-  );
+  // Aliases for compatibility
+  static TextStyle get logo => headline1.copyWith(
+    fontWeight: FontWeight.w900,
+    letterSpacing: 4,
+  ); // Special logo style
+  static TextStyle get slogan => body1.copyWith(fontWeight: FontWeight.w300);
+  static TextStyle get heroHeading => headline1.copyWith(fontSize: 32);
+  static TextStyle get caption =>
+      body2.copyWith(color: AppColors.textSecondary);
+  static TextStyle get tiny => body2.copyWith(fontSize: 12);
+  static TextStyle get subtitle => titleMedium;
+  static TextStyle get buttonPrimary => button;
+  static TextStyle get input => body1;
+  static TextStyle get body => body1;
 }

@@ -1,40 +1,88 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
 class AppTheme {
-  static final CupertinoThemeData lightTheme = CupertinoThemeData(
-    brightness: Brightness.light,
-    primaryColor: AppColors.textPrimary,
-    barBackgroundColor: AppColors.backgroundPrimary,
-    scaffoldBackgroundColor: AppColors.backgroundPrimary,
-    textTheme: CupertinoTextThemeData(
-      primaryColor: AppColors.textPrimary,
-      textStyle: AppTextStyles.body,
-      navTitleTextStyle: AppTextStyles.body.copyWith(
-        fontWeight: FontWeight.w600,
-      ),
-      tabLabelTextStyle: AppTextStyles.tiny.copyWith(fontSize: 10),
-    ),
-  );
-
-  static ThemeData get materialTheme => ThemeData(
+  static final ThemeData light = ThemeData(
     useMaterial3: true,
-    fontFamily: 'Pretendard',
-    brightness: Brightness.light,
-    scaffoldBackgroundColor: AppColors.backgroundPrimary,
+    fontFamily: 'Pretendard', // Assuming global font is set in pubspec or main
+    // Color Scheme
     colorScheme: const ColorScheme.light(
-      primary: AppColors.textPrimary,
-      surface: AppColors.backgroundPrimary,
+      primary: AppColors.primary,
+      surface: AppColors.background,
       onSurface: AppColors.textPrimary,
+      error: AppColors.error,
+      outline: AppColors.border,
     ),
+
+    scaffoldBackgroundColor: AppColors.background,
+    primaryColor: AppColors.primary,
+
+    // AppBar Theme
     appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.backgroundPrimary,
-      foregroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.background,
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: true,
-      titleTextStyle: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+      iconTheme: IconThemeData(color: AppColors.textPrimary),
+      titleTextStyle: AppTextStyles.headline2,
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
+    ),
+
+    // Elevated Button Theme
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textInverse,
+        elevation: 0,
+        textStyle: AppTextStyles.button,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        minimumSize: const Size(
+          double.infinity,
+          56,
+        ), // Full width by default logic often used in mobile
+      ),
+    ),
+
+    // Input Decoration Theme
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.surface,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textHint),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: AppColors.error, width: 1),
+      ),
+    ),
+
+    // Text Theme
+    textTheme:  TextTheme(
+      headlineLarge: AppTextStyles.headline1,
+      headlineMedium: AppTextStyles.headline2,
+      bodyLarge: AppTextStyles.body1,
+      bodyMedium: AppTextStyles.body2,
+    ),
+
+    // Divider Theme
+    dividerTheme: const DividerThemeData(
+      color: AppColors.border,
+      thickness: 1,
+      space: 1,
     ),
   );
 }

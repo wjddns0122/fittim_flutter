@@ -14,15 +14,13 @@ class MyPage extends GetView<UserController> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundPrimary,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          '마이페이지',
-          style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.backgroundPrimary,
+        title: const Text('마이페이지'),
+        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
+        titleTextStyle: AppTextStyles.headline2,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
       body: SafeArea(
@@ -38,7 +36,7 @@ class MyPage extends GetView<UserController> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: AppColors.backgroundSecondary,
+                  color: AppColors.surface,
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.border),
                 ),
@@ -60,12 +58,12 @@ class MyPage extends GetView<UserController> {
                   children: [
                     Text(
                       controller.nickname.value,
-                      style: AppTextStyles.heroHeading.copyWith(fontSize: 24),
+                      style: AppTextStyles.headline1,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       controller.email.value,
-                      style: AppTextStyles.body.copyWith(
+                      style: AppTextStyles.body1.copyWith(
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -82,7 +80,7 @@ class MyPage extends GetView<UserController> {
                   onPressed: controller.logout,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: Colors.red, // Destructive text color
+                    foregroundColor: AppColors.error, // Destructive text color
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     side: const BorderSide(color: AppColors.border),
                     shape: RoundedRectangleBorder(
@@ -92,8 +90,8 @@ class MyPage extends GetView<UserController> {
                   ),
                   child: Text(
                     '로그아웃',
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.destructive,
+                    style: AppTextStyles.button.copyWith(
+                      color: AppColors.error,
                     ),
                   ),
                 ),

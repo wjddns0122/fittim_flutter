@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
 import '../../core/theme/app_colors.dart';
@@ -9,156 +9,108 @@ class LoginPage extends GetView<AuthController> {
 
   @override
   Widget build(BuildContext context) {
-    // Inject controller if not already present
-    // In a real app with GetX bindings, this is handled in the route
     if (!Get.isRegistered<AuthController>()) {
       Get.put(AuthController());
     }
 
-    return CupertinoPageScaffold(
-      backgroundColor: AppColors.backgroundPrimary,
-      child: SafeArea(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32.0,
-          ), // px-8 equivalent (approx 32)
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(flex: 2),
 
-              // Logo
-              Center(child: Text('FITTIM', style: AppTextStyles.logo)),
-              const SizedBox(height: 24), // mb-6
-              // Slogan
-              Center(
-                child: Column(
-                  children: [
-                    Text('남들 말고,', style: AppTextStyles.slogan),
-                    const SizedBox(height: 8),
-                    Text('진짜 나를 입는 시간 10초.', style: AppTextStyles.slogan),
-                  ],
+              // Logo & Slogan
+              Text(
+                'FITTIM',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.headline1.copyWith(
+                  fontSize: 42,
+                  letterSpacing: 4,
                 ),
               ),
-              const SizedBox(height: 64), // mb-16 equiv
-
-              Center(
-                child: Text(
-                  'FITTIM, Fit ME.',
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              const SizedBox(height: 24),
+              Text(
+                '남들 말고,\n진짜 나를 입는 시간 10초.',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.headline2.copyWith(
+                  fontWeight: FontWeight.w300,
                 ),
               ),
 
               const Spacer(flex: 1),
 
-              // Inputs
-              _buildInput(
+              // Input Fields
+              _buildTextField(
                 controller: controller.emailController,
                 placeholder: '이메일 주소',
-                icon: CupertinoIcons.mail,
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 12),
-              _buildInput(
+              _buildTextField(
                 controller: controller.passwordController,
                 placeholder: '비밀번호',
-                icon: CupertinoIcons.lock,
                 obscureText: true,
-              ),
-
-              const SizedBox(height: 12),
-
-              // Login Button
-              Obx(
-                () => CupertinoButton(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  color: AppColors.buttonPrimary,
-                  borderRadius: BorderRadius.circular(100), // Rounded full
-                  onPressed: controller.isLoading.value
-                      ? null
-                      : controller.login,
-                  child: controller.isLoading.value
-                      ? const CupertinoActivityIndicator(
-                          color: AppColors.buttonText,
-                        )
-                      : Text('시작하기', style: AppTextStyles.buttonPrimary),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Divider
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(height: 1, color: AppColors.border),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('또는', style: AppTextStyles.subtitle),
-                  ),
-                  Expanded(
-                    child: Container(height: 1, color: AppColors.border),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Social Login
-              _buildSocialButton(
-                text: '카카오로 계속하기',
-                color: AppColors.kakaoYellow,
-                textColor: AppColors.kakaoText,
-                onPressed: () {}, // Implement Kakao Login
-              ),
-              const SizedBox(height: 8),
-              _buildSocialButton(
-                text: 'Apple로 계속하기',
-                color: AppColors.backgroundPrimary,
-                textColor: AppColors.textPrimary,
-                borderColor: AppColors.border,
-                onPressed: () {}, // Implement Apple Login
               ),
 
               const SizedBox(height: 24),
 
-              // Terms
-              Text(
-                '시작하기를 누르면 서비스 이용약관 및\n개인정보처리방침에 동의하는 것으로 간주됩니다.',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.tiny,
+              // Login Button
+              ElevatedButton(
+                onPressed: controller.login,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.textInverse,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: const StadiumBorder(),
+                  elevation: 0,
+                ),
+                child: Text('시작하기', style: AppTextStyles.button),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
 
-              // Register Link
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => Get.toNamed('/register'),
-                child: RichText(
-                  text: TextSpan(
-                    style: AppTextStyles.caption.copyWith(letterSpacing: 0),
-                    children: [
-                      TextSpan(
-                        text: '계정이 없으신가요? ',
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
-                      TextSpan(
-                        text: '회원가입',
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ],
-                  ),
+              // Kakao Login (Hardcoded colors for 3rd party brand)
+              ElevatedButton(
+                onPressed: () {
+                  Get.snackbar('알림', '카카오 로그인은 준비 중입니다.');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFEE500),
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: const StadiumBorder(),
+                  elevation: 0,
+                ),
+                child: Text(
+                  '카카오로 계속하기',
+                  style: AppTextStyles.button.copyWith(color: Colors.black),
                 ),
               ),
 
+              const Spacer(flex: 2),
+
+              // Signup Link
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('아직 회원이 아니신가요?', style: AppTextStyles.body2),
+                  TextButton(
+                    onPressed: () => Get.toNamed('/register'),
+                    child: Text(
+                      '회원가입',
+                      style: AppTextStyles.body2.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 20),
             ],
           ),
@@ -167,64 +119,44 @@ class LoginPage extends GetView<AuthController> {
     );
   }
 
-  Widget _buildInput({
+  Widget _buildTextField({
     required TextEditingController controller,
     required String placeholder,
-    required IconData icon,
     bool obscureText = false,
+    TextInputType? keyboardType,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.backgroundSecondary,
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: AppColors.border),
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 4,
-      ), // adjusted for CupertinoTextField sizing
-      child: CupertinoTextField(
-        controller: controller,
-        placeholder: placeholder,
-        obscureText: obscureText,
-        prefix: Icon(icon, color: AppColors.textHint, size: 20),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: null, // Remove default border
-        style: AppTextStyles.input,
-        placeholderStyle: AppTextStyles.input.copyWith(
-          color: AppColors.textHint,
+    // Using simple CupertinoTextField for iOS feel or TextField for Material
+    // Given Material Theme switch, I'll use TextField but styled to look like the design
+    // The design requested "Cupertino" feel but now we are "Minimal/Sophisticated".
+    // I'll use TextField with InputDecorationTheme defined in AppTheme.
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: placeholder, // using hintText instead of placeholder
+        fillColor: AppColors.surface,
+        filled: true,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(
+            30,
+          ), // Rounded full as per StadiumBorder buttons
+          borderSide: const BorderSide(color: AppColors.border),
         ),
-        cursorColor: AppColors.textPrimary,
-      ),
-    );
-  }
-
-  Widget _buildSocialButton({
-    required String text,
-    required Color color,
-    required Color textColor,
-    Color? borderColor,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(100),
-        border: borderColor != null ? Border.all(color: borderColor) : null,
-      ),
-      child: CupertinoButton(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        color: color,
-        borderRadius: BorderRadius.circular(100),
-        onPressed: onPressed,
-        child: Text(
-          text,
-          style: AppTextStyles.buttonPrimary.copyWith(
-            color: textColor,
-            fontWeight: FontWeight.w400,
-          ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: AppColors.primary),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
         ),
       ),
+      style: AppTextStyles.body1,
     );
   }
 }

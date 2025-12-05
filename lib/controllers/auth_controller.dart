@@ -42,7 +42,6 @@ class AuthController extends GetxController {
 
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
-        print("서버 응답: $decodedBody"); // Debugging
 
         try {
           final data = jsonDecode(decodedBody);
@@ -51,7 +50,7 @@ class AuthController extends GetxController {
 
           if (token != null) {
             await _storage.write(key: 'jwt_token', value: token);
-            Get.offAllNamed('/home'); // Navigate to home
+            Get.offAllNamed('/main'); // Navigate to main shell
           } else {
             _showError('로그인 실패: 토큰이 없습니다.');
           }
@@ -87,7 +86,12 @@ class AuthController extends GetxController {
         body: jsonEncode({
           'email': email,
           'password': password,
-          'nickname': name,
+          'username':
+              name, // Changed from user_name or name to 'username' based on common convention, assuming BACKEND changed to require this.
+          // WAIT! The user prompt says Validation failed for nickname.
+          // The error message is validation failed for 'nickname'.
+          // So the backend expects 'nickname'.
+          'nickname': name, // Explicitly adding nickname field
         }),
       );
 

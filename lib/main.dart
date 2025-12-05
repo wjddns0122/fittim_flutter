@@ -1,62 +1,36 @@
-import 'package:fittim_flutter/core/theme/app_theme.dart';
-import 'package:fittim_flutter/ui/pages/login_page.dart';
-import 'package:fittim_flutter/ui/pages/register_page.dart';
-import 'package:fittim_flutter/ui/pages/wardrobe_page.dart';
-import 'package:fittim_flutter/ui/pages/fit_page.dart';
-import 'package:fittim_flutter/ui/pages/splash_page.dart';
-import 'package:fittim_flutter/ui/pages/my_page.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'core/theme/app_theme.dart';
+import 'ui/pages/login_page.dart';
+import 'ui/pages/register_page.dart';
+import 'ui/pages/splash_page.dart';
+import 'ui/pages/main_page.dart';
 
 void main() {
-  runApp(const FittimApp());
+  runApp(const MyApp());
 }
 
-class FittimApp extends StatelessWidget {
-  const FittimApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'FITTIM',
+      theme: AppTheme.light, // Applying the global theme
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.materialTheme,
-      initialRoute: '/splash',
+      initialRoute: '/splash', // Splash handles the initial token check
       getPages: [
         GetPage(name: '/splash', page: () => const SplashPage()),
         GetPage(name: '/login', page: () => const LoginPage()),
         GetPage(name: '/register', page: () => const RegisterPage()),
-        GetPage(name: '/wardrobe', page: () => const WardrobePage()),
-        GetPage(name: '/fit', page: () => const FitPage()),
-        GetPage(name: '/mypage', page: () => const MyPage()),
         GetPage(
-          name: '/home',
-          page: () => Scaffold(
-            appBar: AppBar(title: const Text('FITTIM'), centerTitle: true),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => Get.toNamed('/wardrobe'),
-                    child: const Text('내 옷장'),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () => Get.toNamed('/fit'),
-                    child: const Text('코디 추천'),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () => Get.toNamed('/mypage'),
-                    child: const Text('마이페이지'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+          name: '/main',
+          page: () => const MainPage(),
+        ), // Shell with BottomNav
+        // Individual pages can still be accessed directly if needed, but usually via Main
+        // '/fit-result' is effectively inside /main -> FitPage currently,
+        // but we can add it if a standalone result page is needed later.
       ],
     );
   }

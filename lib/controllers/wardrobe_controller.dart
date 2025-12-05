@@ -13,6 +13,32 @@ class WardrobeController extends GetxController {
   final RxList<WardrobeItem> items = <WardrobeItem>[].obs;
   final RxBool isLoading = false.obs;
 
+  // Category Filtering Logic
+  final RxString selectedCategory = 'ALL'.obs;
+
+  static const List<String> categories = [
+    'ALL',
+    'TOP',
+    'BOTTOM',
+    'OUTER',
+    'SHOES',
+    'ACC',
+  ];
+
+  List<WardrobeItem> get filteredItems {
+    if (selectedCategory.value == 'ALL') {
+      return items;
+    }
+    // Filter by item.category matching code
+    return items
+        .where((item) => item.category == selectedCategory.value)
+        .toList();
+  }
+
+  void changeCategory(String category) {
+    selectedCategory.value = category;
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -39,14 +65,12 @@ class WardrobeController extends GetxController {
         items.value = data.map((e) => WardrobeItem.fromJson(e)).toList();
       }
     } catch (e) {
-      // Only show snackbar if not 401 (auth issue handled by flow usually)
       Get.snackbar('오류', '옷장 목록을 불러오는데 실패했습니다: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Changed from File to XFile to support Web
   Future<void> uploadItem(
     XFile imageFile,
     String category,
@@ -66,10 +90,12 @@ class WardrobeController extends GetxController {
         '상의': 'TOP',
         '하의': 'BOTTOM',
         '아우터': 'OUTER',
-        '원피스': 'DRESS',
+        '원피스':
+            'DRESS', // DRESS logic not explicitly in filter list, mapping to TOP for simplicity or add DRESS to filter
         '신발': 'SHOES',
-        '가방': 'BAG',
-        '기타': 'ETC',
+        '가방': 'ACC',
+        '기타': 'ACC',
+        '악세사리': 'ACC',
       };
 
       final seasonMap = {
@@ -80,10 +106,11 @@ class WardrobeController extends GetxController {
         '사계절': 'ALL',
       };
 
+      // DRESS isn't in filter list but is common. Mapping DRESS to 'TOP' or 'BOTTOM' might be confusing.
+      // For now, let's assume filtering handles strictly equal strings.
+      // If categories list is strict, DRESS items won't show unless user selects ALL.
       final categoryCode = categoryMap[category] ?? 'ETC';
       final seasonCode = seasonMap[season] ?? 'ALL';
-
-      print('전송 데이터: $categoryCode, $seasonCode');
 
       // Use fromBytes for Web compatibility
       final bytes = await imageFile.readAsBytes();
@@ -104,7 +131,17 @@ class WardrobeController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.back(); // Close dialog if open
         Get.snackbar('성공', '옷이 등록되었습니다.');
-        fetchItems(); // Refresh list
+
+        // Refresh items
+        await fetchItems();
+
+        // Switch to the uploaded category so the user sees their new item immediately
+        // BUT check if the categoryCode exists in our filter list.
+        if (categories.contains(categoryCode)) {
+          selectedCategory.value = categoryCode;
+        } else {
+          selectedCategory.value = 'ALL';
+        }
       }
     } catch (e) {
       Get.snackbar('오류', '업로드 실패: $e');

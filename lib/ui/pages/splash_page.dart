@@ -13,12 +13,18 @@ class SplashPage extends GetView<SplashController> {
     Get.put(SplashController());
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundPrimary,
+      backgroundColor: AppColors.background,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('FITTIM', style: AppTextStyles.logo.copyWith(fontSize: 48)),
+            Text(
+              'FITTIM',
+              style: AppTextStyles.headline1.copyWith(
+                fontSize: 48,
+                letterSpacing: 5,
+              ),
+            ),
             const SizedBox(height: 20),
             const CircularProgressIndicator(
               color: AppColors.textPrimary,

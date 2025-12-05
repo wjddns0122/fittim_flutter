@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import '../../controllers/fit_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../data/models/fit_response.dart';
-import '../../data/models/wardrobe_item.dart';
+import '../../core/widgets/common_button.dart';
+import '../../core/widgets/fashion_card.dart';
 
 class FitPage extends GetView<FitController> {
   const FitPage({super.key});
@@ -15,155 +15,125 @@ class FitPage extends GetView<FitController> {
       Get.put(FitController());
     }
 
+    final seasons = ['봄', '여름', '가을', '겨울'];
+    final places = ['데이트', '학교', '여행', '파티']; // Extended Context
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundPrimary,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          '오늘의 핏',
-          style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.backgroundPrimary,
-        elevation: 0,
+        title: Text('Fit Recommendation', style: AppTextStyles.headline2),
         centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. Selector Section
-              _buildInputSection(),
-
-              const SizedBox(height: 20),
-
-              const Divider(thickness: 1, color: AppColors.border),
-
-              const SizedBox(height: 20),
-
-              // 2. Result Section
-              Expanded(
-                child: Obx(() {
-                  if (controller.isLoading.value) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.buttonPrimary,
-                      ),
-                    );
-                  }
-
-                  if (controller.recommendation.value == null) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.checkroom,
-                            size: 48,
-                            color: AppColors.textHint,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            "오늘 뭐 입을지 고민되나요?\n계절을 선택하고 추천을 받아보세요!",
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.body.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return _buildResultView(controller.recommendation.value!);
-                }),
-              ),
-            ],
-          ),
-        ),
+        child: Obx(() {
+          // If no result yet, show Input Form
+          if (controller.recommendation.value == null) {
+            return _buildInputForm(seasons, places);
+          }
+          // If loading, show spinner
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            );
+          }
+          // Show Result
+          return _buildLookbookResult(context);
+        }),
       ),
     );
   }
 
-  Widget _buildInputSection() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Obx(
-              () => DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: controller.selectedSeason.value,
-                  isExpanded: true,
-                  items: ['봄', '여름', '가을', '겨울'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value, style: AppTextStyles.body),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) controller.selectedSeason.value = val;
-                  },
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        ElevatedButton(
-          onPressed: () => controller.getRecommendation(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.buttonPrimary,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 0,
-          ),
-          child: Text(
-            '추천받기',
-            style: AppTextStyles.body.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildResultView(FitResponse fit) {
-    // fit is FitResponse
-    return SingleChildScrollView(
+  Widget _buildInputForm(List<String> seasons, List<String> places) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (fit.outer != null) ...[
-            _buildItemCard(fit.outer!, 'OUTER'),
-            const SizedBox(height: 10),
-            const Icon(Icons.add, color: AppColors.textHint, size: 20),
-            const SizedBox(height: 10),
-          ],
+          Text('오늘의 TPO를\n설정해주세요.', style: AppTextStyles.headline1),
+          const SizedBox(height: 40),
 
-          if (fit.top != null) _buildItemCard(fit.top!, 'TOP'),
+          Text('계절 (Season)', style: AppTextStyles.titleMedium),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            children: seasons.map((season) {
+              return Obx(() {
+                final isSelected = controller.selectedSeason.value == season;
+                return ChoiceChip(
+                  label: Text(season),
+                  selected: isSelected,
+                  selectedColor: AppColors.primary,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: AppTextStyles.body2.copyWith(
+                    color: isSelected ? Colors.white : AppColors.textPrimary,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                  onSelected: (selected) {
+                    if (selected) controller.selectedSeason.value = season;
+                  },
+                  showCheckmark: false,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.transparent,
+                    ),
+                  ),
+                );
+              });
+            }).toList(),
+          ),
 
-          const SizedBox(height: 10),
-          const Icon(Icons.add, color: AppColors.textHint, size: 20),
-          const SizedBox(height: 10),
+          const SizedBox(height: 24),
 
-          if (fit.bottom != null) _buildItemCard(fit.bottom!, 'BOTTOM'),
+          Text('장소 (Place)', style: AppTextStyles.titleMedium),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            children: places.map((place) {
+              return Obx(() {
+                final isSelected = controller.selectedPlace.value == place;
+                return ChoiceChip(
+                  label: Text(place),
+                  selected: isSelected,
+                  selectedColor: AppColors.primary,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: AppTextStyles.body2.copyWith(
+                    color: isSelected ? Colors.white : AppColors.textPrimary,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                  onSelected: (selected) {
+                    if (selected) controller.selectedPlace.value = place;
+                  },
+                  showCheckmark: false,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.transparent,
+                    ),
+                  ),
+                );
+              });
+            }).toList(),
+          ),
 
-          const SizedBox(height: 30),
+          const Spacer(),
 
-          TextButton.icon(
+          CommonButton(
+            text: '추천받기',
             onPressed: () => controller.getRecommendation(),
-            icon: const Icon(Icons.refresh, color: AppColors.textPrimary),
-            label: Text('다른 코디 보기', style: AppTextStyles.body),
           ),
           const SizedBox(height: 20),
         ],
@@ -171,50 +141,153 @@ class FitPage extends GetView<FitController> {
     );
   }
 
-  Widget _buildItemCard(WardrobeItem item, String label) {
+  Widget _buildLookbookResult(BuildContext context) {
+    final result = controller.recommendation.value!;
+
+    return Column(
+      children: [
+        // Header Context
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildTag('#${controller.selectedSeason.value}'),
+              const SizedBox(width: 8),
+              _buildTag('#${controller.selectedPlace.value}'),
+              const SizedBox(width: 8),
+              _buildTag('#OOTD'),
+            ],
+          ),
+        ),
+
+        // Scrollable Outfit Content
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "Today's Look",
+                  style: AppTextStyles.headline1,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+
+                // Hero Item (Outer if exists)
+                if (result.outer != null) ...[
+                  SizedBox(
+                    height: 300,
+                    child: FashionCard(
+                      imageUrl: controller.getFullImageUrl(
+                        result.outer!.imageUrl,
+                      ),
+                      title: 'OUTER',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // Row for Top & Bottom using robust null checks
+                if (result.top != null || result.bottom != null)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (result.top != null)
+                        Expanded(
+                          child: SizedBox(
+                            height: 220,
+                            child: FashionCard(
+                              imageUrl: controller.getFullImageUrl(
+                                result.top!.imageUrl,
+                              ),
+                              title: 'TOP',
+                            ),
+                          ),
+                        ),
+
+                      if (result.top != null && result.bottom != null)
+                        const SizedBox(width: 16),
+
+                      if (result.bottom != null)
+                        Expanded(
+                          child: SizedBox(
+                            height: 220,
+                            child: FashionCard(
+                              imageUrl: controller.getFullImageUrl(
+                                result.bottom!.imageUrl,
+                              ),
+                              title: 'BOTTOM',
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+
+        // Action Buttons
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 56,
+                  child: OutlinedButton.icon(
+                    onPressed: () => controller.getRecommendation(),
+                    icon: const Icon(
+                      Icons.refresh,
+                      color: AppColors.textPrimary,
+                    ),
+                    label: Text(
+                      'Retry',
+                      style: AppTextStyles.button.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.border),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: CommonButton(
+                  text: 'Save Look',
+                  onPressed: () => controller.saveLook(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTag(String text) {
     return Container(
-      width: double.infinity,
-      height: 200, // Fixed height for consistency
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.backgroundSecondary,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(10),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.network(
-              controller.getFullImageUrl(item.imageUrl),
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stack) => const Center(
-                child: Icon(Icons.broken_image, color: AppColors.textHint),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 12,
-            left: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(200),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                label,
-                style: AppTextStyles.tiny.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        text,
+        style: AppTextStyles.body2.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

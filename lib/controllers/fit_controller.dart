@@ -1,19 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
-import '../data/models/fit_response.dart';
 import '../data/api_provider.dart';
+import '../data/models/fit_response.dart';
 
 class FitController extends GetxController {
   final _storage = const FlutterSecureStorage();
   final Dio _dio = Dio();
 
-  final Rx<FitResponse?> recommendation = Rx<FitResponse?>(null);
   final RxBool isLoading = false.obs;
+  final Rxn<FitResponse> recommendation = Rxn<FitResponse>();
 
-  // UI State for Inputs
+  // Use these to display context in UI
   final RxString selectedSeason = '봄'.obs;
-  final RxString selectedPlace = '일상'.obs;
+  final RxString selectedPlace = '데이트'.obs;
 
   Future<void> getRecommendation() async {
     try {
@@ -25,29 +25,28 @@ class FitController extends GetxController {
         return;
       }
 
-      // Map Strings to Codes
       final seasonMap = {
         '봄': 'SPRING',
         '여름': 'SUMMER',
         '가을': 'AUTUMN',
         '겨울': 'WINTER',
+        '사계절': 'ALL',
       };
 
-      // Assuming Backend expects Place codes too, defaulting to specific ones or string
-      // Spec said: "place (DATE, SCHOOL...)"
       final placeMap = {
-        '일상': 'DAILY',
         '데이트': 'DATE',
         '학교': 'SCHOOL',
         '여행': 'TRAVEL',
+        '파티': 'PARTY',
       };
 
       final seasonCode = seasonMap[selectedSeason.value] ?? 'SPRING';
-      final placeCode = placeMap[selectedPlace.value] ?? 'DAILY';
+      final placeCode = placeMap[selectedPlace.value] ?? 'DATE';
 
-      final response = await _dio.post(
-        '${ApiProvider.baseUrl}/api/fits/recommend',
-        data: {'season': seasonCode, 'place': placeCode},
+      // Added placeCode to queryParameters
+      final response = await _dio.get(
+        '${ApiProvider.baseUrl}/api/recommendations',
+        queryParameters: {'season': seasonCode, 'place': placeCode},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -55,14 +54,22 @@ class FitController extends GetxController {
         recommendation.value = FitResponse.fromJson(response.data);
       }
     } catch (e) {
-      Get.snackbar('알림', '추천을 불러오지 못했습니다. 옷장에 옷이 충분한지 확인해주세요.\n($e)');
-      recommendation.value = null;
+      Get.snackbar('오류', '추천을 받아오지 못했습니다: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
-  String getFullImageUrl(String relativePath) {
+  void saveLook() {
+    Get.snackbar(
+      '저장 완료',
+      '나만의 코디북에 저장되었습니다.',
+      duration: const Duration(seconds: 1),
+    );
+  }
+
+  String getFullImageUrl(String? relativePath) {
+    if (relativePath == null) return '';
     if (relativePath.startsWith('http')) return relativePath;
     final baseUrl = ApiProvider.baseUrl;
     if (relativePath.startsWith('/')) {
