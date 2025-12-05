@@ -1,6 +1,7 @@
 import 'package:fittim_flutter/core/theme/app_theme.dart';
 import 'package:fittim_flutter/ui/pages/login_page.dart';
 import 'package:fittim_flutter/ui/pages/register_page.dart';
+import 'package:fittim_flutter/ui/pages/wardrobe_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
@@ -13,14 +14,15 @@ class FittimApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetCupertinoApp(
+    return GetMaterialApp(
       title: 'FITTIM',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.materialTheme,
       initialRoute: '/login', // Set initial route to Login for now
       getPages: [
         GetPage(name: '/login', page: () => const LoginPage()),
         GetPage(name: '/register', page: () => const RegisterPage()),
+        GetPage(name: '/wardrobe', page: () => const WardrobePage()),
         GetPage(
           name: '/home',
           page: () => const CupertinoPageScaffold(

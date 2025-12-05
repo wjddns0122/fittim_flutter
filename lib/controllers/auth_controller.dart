@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fittim_flutter/data/api_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -14,7 +15,8 @@ class AuthController extends GetxController {
   final nameController = TextEditingController(); // For registration
 
   // Placeholder for API URL - replace with actual env variable or constant
-  static const String _baseUrl = 'http://localhost:8080';
+  // API URL from ApiProvider
+  static String get _baseUrl => ApiProvider.baseUrl;
 
   Future<void> login() async {
     final email = emailController.text.trim();

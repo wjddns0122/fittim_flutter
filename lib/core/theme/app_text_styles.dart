@@ -22,6 +22,13 @@ class AppTextStyles {
     color: AppColors.textPrimary,
   );
 
+  // Title Medium (22px, w600)
+  static TextStyle get titleMedium => _baseStyle.copyWith(
+    fontSize: 22,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+
   // Slogan (24px, w300, leading 1.4)
   static TextStyle get slogan => _baseStyle.copyWith(
     fontSize: 24,
