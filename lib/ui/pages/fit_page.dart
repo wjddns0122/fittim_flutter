@@ -7,6 +7,7 @@ import '../../core/widgets/common_button.dart';
 import '../../core/widgets/chip_group.dart';
 import '../../core/widgets/tag_chip.dart';
 // removed unused fashion_card import
+import 'fit/result/fit_result_page.dart';
 
 class FitPage extends GetView<FitController> {
   final bool isHomeMode;
@@ -471,18 +472,33 @@ class FitPage extends GetView<FitController> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          AspectRatio(
-            aspectRatio: 4 / 5,
-            child: Container(
-              color: AppColors.surface,
-              child: imageUrl.isNotEmpty
-                  ? Image.network(
-                      controller.getFullImageUrl(imageUrl),
-                      fit: BoxFit.cover,
-                    )
-                  : const Center(
-                      child: Icon(Icons.image, color: AppColors.textHint),
-                    ),
+          GestureDetector(
+            onTap: () {
+              // Use controller.recommendation.value
+              // It's a FitResponse object. FitResultController can handle it (dynamic logic).
+              // Or convert to Map if needed, but Controller logic handles Object with field checks.
+              // FitResultController uses `_hasField` so FitResponse object works if it has generic getters or toMap.
+              // Actually FitResponse likely has standard getters.
+              // FitResultController uses dynamic access `args.top`.
+              // If FitResponse has `top` getter, it works.
+              Get.to(
+                () => const FitResultPage(),
+                arguments: controller.recommendation.value,
+              );
+            },
+            child: AspectRatio(
+              aspectRatio: 4 / 5,
+              child: Container(
+                color: AppColors.surface,
+                child: imageUrl.isNotEmpty
+                    ? Image.network(
+                        controller.getFullImageUrl(imageUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : const Center(
+                        child: Icon(Icons.image, color: AppColors.textHint),
+                      ),
+              ),
             ),
           ),
           Padding(

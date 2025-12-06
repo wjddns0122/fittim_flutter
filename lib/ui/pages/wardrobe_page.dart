@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../controllers/wardrobe_controller.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/fashion_card.dart';
 
 class WardrobePage extends GetView<WardrobeController> {
   const WardrobePage({super.key});
@@ -19,62 +20,38 @@ class WardrobePage extends GetView<WardrobeController> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header: "내 옷장" + Plus Button
+            // Header: "My Wardrobe" + Plus Button
             Padding(
-              padding: const EdgeInsets.only(
-                left: 24,
-                right: 24,
-                top: 16,
-                bottom: 24,
-              ), // pt-14 pb-6 in React (approx)
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    '내 옷장',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
+                  Text(
+                    'My Wardrobe',
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => _showAddOptions(context),
-                    child: Container(
-                      width: 36, // w-9
-                      height: 36, // h-9
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
+                  const SizedBox(
+                    width: 40,
+                  ), // Placeholder to keep title left or just remove row alignment logic if needed
                 ],
               ),
             ),
 
             // Category Tabs
             Container(
-              height: 40,
+              height: 36,
               margin: const EdgeInsets.only(bottom: 24),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.border)),
-              ),
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 scrollDirection: Axis.horizontal,
                 itemCount: WardrobeController.categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 24),
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
                   final category = WardrobeController.categories[index];
-                  // Map EN codes to KR labels for display, if needed, or just use as is if they match
-                  // React has: 'ALL', '상의', '하의' etc. My Controller has 'ALL', 'TOP' etc.
-                  // I should map them for display to match visual clone.
                   final label = _getCategoryLabel(category);
 
                   return Obx(() {
@@ -82,28 +59,27 @@ class WardrobePage extends GetView<WardrobeController> {
                         controller.selectedCategory.value == category;
                     return GestureDetector(
                       onTap: () => controller.changeCategory(category),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: isSelected
-                                  ? FontWeight.w400
-                                  : FontWeight.w300,
-                              color: isSelected
-                                  ? AppColors.textPrimary
-                                  : AppColors.textSecondary,
-                            ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.black
+                              : const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF888888),
                           ),
-                          if (isSelected)
-                            Container(
-                              height: 1.5,
-                              width: 30, // rough width or use LayoutBuilder
-                              color: AppColors.primary,
-                            ),
-                        ],
+                        ),
                       ),
                     );
                   });
@@ -111,33 +87,73 @@ class WardrobePage extends GetView<WardrobeController> {
               ),
             ),
 
-            // Grid
+            // Masonry Grid
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(
-                    24,
-                    0,
-                    24,
-                    128,
-                  ), // pb-32 = 128px approx
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 1, // aspect-square
-                  ),
-                  itemCount: controller.filteredItems.length,
+
+                // MasonryGridView needs finite height or be in expanded, which it is.
+                return MasonryGridView.count(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  itemCount:
+                      controller.items.length, // Filter is done via API now
                   itemBuilder: (context, index) {
-                    final item = controller.filteredItems[index];
-                    return FashionCard(
-                      imageUrl: controller.getFullImageUrl(item.imageUrl),
-                      title: item
-                          .category, // React uses 'name' (e.g. White Shirt), we have 'category', using category/season as fallback title
-                      subtitle: item.season,
+                    final item = controller.items[index];
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: const Color(0xFFF7F7F7),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Stack(
+                          children: [
+                            Image.network(
+                              controller.getFullImageUrl(item.imageUrl),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const SizedBox(
+                                  height: 150,
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      color: Color(0xFFCCCCCC),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            // Optional Overlay
+                            Positioned(
+                              bottom: 12,
+                              left: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  item.season,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   },
                 );
@@ -147,28 +163,18 @@ class WardrobePage extends GetView<WardrobeController> {
         ),
       ),
 
-      // Floating Action Button (Brand Blue Sparkles)
+      // Floating Action Button
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(
-          bottom: 50,
-          right: 8,
-        ), // bottom-24 right-6
+        padding: const EdgeInsets.only(bottom: 16, right: 8),
         child: SizedBox(
-          width: 56, // w-14
-          height: 56, // h-14
+          width: 56,
+          height: 56,
           child: FloatingActionButton(
-            onPressed: () {
-              // FAB Logic or duplicate Add
-              _showAddOptions(context);
-            },
-            backgroundColor: AppColors.brandBlue,
+            onPressed: () => _showAddOptions(context),
+            backgroundColor: Colors.black, // Primary color
             elevation: 4,
             shape: const CircleBorder(),
-            child: const Icon(
-              Icons.auto_awesome,
-              color: Colors.white,
-              size: 24,
-            ),
+            child: const Icon(Icons.add, color: Colors.white, size: 28),
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../data/models/fit_response.dart';
 import '../data/api_provider.dart';
+import '../core/constants/api_routes.dart';
 
 class FitController extends GetxController {
   final ApiProvider _apiProvider = ApiProvider();
@@ -28,9 +29,9 @@ class FitController extends GetxController {
       String seasonCode = _mapSeasonToCode(selectedSeason.value);
       String placeCode = _mapPlaceToCode(selectedPlace.value);
 
-      final response = await _apiProvider.dio.get(
-        '/recommend/tpo',
-        queryParameters: {'season': seasonCode, 'place': placeCode},
+      final response = await _apiProvider.dio.post(
+        ApiRoutes.fitRecommend,
+        data: {'season': seasonCode, 'place': placeCode},
       );
 
       if (response.statusCode == 200) {

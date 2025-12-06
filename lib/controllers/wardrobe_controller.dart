@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../core/constants/api_routes.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile;
 import 'package:image_picker/image_picker.dart';
@@ -35,7 +36,9 @@ class WardrobeController extends GetxController {
   }
 
   void changeCategory(String category) {
+    if (selectedCategory.value == category) return;
     selectedCategory.value = category;
+    fetchItems();
   }
 
   @override
@@ -47,7 +50,6 @@ class WardrobeController extends GetxController {
   Future<void> fetchItems() async {
     try {
       isLoading.value = true;
-      // Fixed: Check 'accessToken'
       final token = await _storage.read(key: 'accessToken');
 
       if (token == null) {
@@ -55,8 +57,14 @@ class WardrobeController extends GetxController {
         return;
       }
 
+      final queryParams = <String, dynamic>{};
+      if (selectedCategory.value != 'ALL') {
+        queryParams['category'] = selectedCategory.value;
+      }
+
       final response = await _dio.get(
-        '${ApiProvider.baseUrl}/api/wardrobe',
+        '${ApiProvider.baseUrl}${ApiRoutes.wardrobe}',
+        queryParameters: queryParams,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -118,7 +126,7 @@ class WardrobeController extends GetxController {
       });
 
       final response = await _dio.post(
-        '${ApiProvider.baseUrl}/api/wardrobe',
+        '${ApiProvider.baseUrl}${ApiRoutes.wardrobe}',
         data: formData,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );

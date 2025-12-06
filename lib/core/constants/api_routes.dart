@@ -10,6 +10,7 @@ class ApiRoutes {
 
   // Wardrobe
   static const String wardrobe = '/api/wardrobe';
+  static const String wardrobeRecent = '/api/wardrobe/recent';
 
   // Fit
   static const String fitRecommend = '/api/fits/recommend';

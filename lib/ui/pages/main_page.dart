@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../controllers/main_controller.dart';
 import '../../core/theme/app_colors.dart';
 import 'wardrobe_page.dart';
+import 'home_page.dart';
 import 'fit_page.dart';
 import 'my_page.dart';
 
@@ -20,9 +21,9 @@ class MainPage extends GetView<MainController> {
       body: Obx(
         () => IndexedStack(
           index: controller.selectedIndex.value,
-          children: const [
+          children: [
             // 0: Home
-            FitPage(isHomeMode: true), // Reusing FitPage for Home/Input mode
+            HomePage(),
             // 1: Fit (Result?) - React App.tsx maps 'results' to OutfitResultsScreen
             // But logic-wise, Home generates Fit. So 'Fit' tab could be history or active result.
             // For now, let's make Fit tab also show FitPage or a placeholder if logic is shared.
