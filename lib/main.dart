@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'core/theme/app_theme.dart';
 import 'ui/pages/login_page.dart';
-import 'ui/pages/register_page.dart';
+import 'ui/pages/signup_page.dart';
 import 'ui/pages/splash_page.dart';
 import 'ui/pages/main_page.dart';
 import 'ui/pages/wardrobe_page.dart';
@@ -32,7 +32,10 @@ class MyApp extends StatelessWidget {
             Get.put(AuthController());
           }),
         ),
-        GetPage(name: '/register', page: () => const RegisterPage()),
+        GetPage(
+          name: '/register',
+          page: () => const SignupPage(),
+        ), // Changed to SignupPage
         GetPage(name: '/main', page: () => const MainPage()),
         GetPage(name: '/wardrobe', page: () => const WardrobePage()),
         GetPage(name: '/fit', page: () => const FitPage()),

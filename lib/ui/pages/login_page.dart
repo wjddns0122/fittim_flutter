@@ -139,10 +139,7 @@ class LoginPage extends GetView<AuthController> {
                     child: ElevatedButton(
                       onPressed: () {
                         // TODO: Implement Kakao Login
-                        Get.snackbar(
-                          'Coming Soon',
-                          'Kakao Login is under construction',
-                        );
+                        Get.snackbar('Coming Soon', '카카오 로그인은 준비 중입니다.');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.kakaoYellow,
