@@ -47,21 +47,32 @@ class FitResultPage extends GetView<FitResultController> {
         children: [
           SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 100), // Space for bottom bar
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Hero Section (Image + Heart)
-                _buildHeroSection(),
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 100),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
 
-                // 2. Title & Tags
-                _buildTitleSection(),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Hero Section (Image + Heart)
+                  _buildHeroSection(),
 
-                const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                  // 2. Title & Tags
+                  _buildTitleSection(),
 
-                // 3. Items Section
-                _buildItemsSection(),
-              ],
-            ),
+                  const Divider(height: 1, color: Color(0xFFEEEEEE)),
+
+                  // 3. Items Section
+                  _buildItemsSection(),
+                ],
+              );
+            }),
           ),
 
           // 4. Fixed Bottom Bar
@@ -191,6 +202,61 @@ class FitResultPage extends GetView<FitResultController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Stylist's Comment Section
+          // Stylist's Comment Section
+          Obx(() {
+            final comment = controller.reason.value.isNotEmpty
+                ? controller.reason.value
+                : "AI가 멋진 코디를 추천해드려요! (추천 사유가 여기에 표시됩니다)";
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Stylist's Comment",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.lightbulb_outline,
+                        size: 20,
+                        color: Colors.amber,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          comment,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: controller.reason.value.isNotEmpty
+                                ? const Color(0xFF555555)
+                                : Colors.grey,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            );
+          }),
+
           Text(
             '구성 아이템',
             style: GoogleFonts.poppins(
@@ -202,12 +268,7 @@ class FitResultPage extends GetView<FitResultController> {
           const SizedBox(height: 20),
 
           Obx(() {
-            final items = [
-              if (controller.top.value != null) controller.top.value!,
-              if (controller.bottom.value != null) controller.bottom.value!,
-              if (controller.outer.value != null) controller.outer.value!,
-              if (controller.shoes.value != null) controller.shoes.value!,
-            ];
+            final items = controller.generatedItems;
 
             if (items.isEmpty) {
               return const Padding(

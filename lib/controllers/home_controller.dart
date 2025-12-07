@@ -68,9 +68,43 @@ class HomeController extends GetxController {
 
   Future<void> onCreateFittim() async {
     try {
-      isLoading.value = true;
       final token = await _storage.read(key: 'accessToken');
       if (token == null) return;
+
+      // 1. Show Loading Dialog
+      Get.dialog(
+        PopScope(
+          canPop: false, // Prevent back button
+          child: Material(
+            color: Colors.transparent,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 24,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    CircularProgressIndicator(color: Colors.white),
+                    SizedBox(height: 16),
+                    Text(
+                      "AI 스타일리스트가 옷을 고르고 있어요...",
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      );
 
       // Call Recommendation API directly
       final response = await _apiProvider.dio.post(
@@ -82,6 +116,11 @@ class HomeController extends GetxController {
         },
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
+
+      // 2. Close Loading Dialog
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
 
       if (response.statusCode == 200) {
         final responseData = response.data;
@@ -170,6 +209,7 @@ class HomeController extends GetxController {
         );
       }
     } catch (e) {
+      if (Get.isDialogOpen == true) Get.back(); // Close loading if error
       print('Failed to create fittim: $e');
       Get.snackbar('Error', 'Failed to generate fit');
     } finally {

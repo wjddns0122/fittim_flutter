@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../controllers/home_controller.dart';
 import '../../controllers/main_controller.dart';
 import '../../core/theme/app_colors.dart';
-import 'fit/result/fit_result_page.dart';
 
 class HomePage extends GetView<HomeController> {
   const HomePage({super.key});
@@ -229,9 +228,10 @@ class HomePage extends GetView<HomeController> {
 
                 return GestureDetector(
                   onTap: () {
-                    // Navigate to FitResultPage with the history item as arguments
-                    // The FitResultController is designed to parse this object/map.
-                    Get.to(() => const FitResultPage(), arguments: historyItem);
+                    // Navigate to Fit Page (Tab 1) instead of direct Result Page
+                    if (Get.isRegistered<MainController>()) {
+                      Get.find<MainController>().changeIndex(1);
+                    }
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
