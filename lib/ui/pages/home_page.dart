@@ -24,17 +24,22 @@ class HomePage extends GetView<HomeController> {
             children: [
               // 1. Header
               _buildHeader(),
+              const SizedBox(
+                height: 24,
+              ), // Custom spacing as per design (approx)
+              // 2. Weather Widget
+              _buildWeatherSection(),
               const SizedBox(height: 32),
 
-              // 2. Main Button
-              _buildMainButton(),
-              const SizedBox(height: 32),
+              // 3. Hero Section (Text + Button)
+              _buildHeroSection(),
+              const SizedBox(height: 40),
 
-              // 3. Selection Chips
+              // 4. Selection Chips
               _buildSelectionSection(),
               const SizedBox(height: 40),
 
-              // 4. Recent History
+              // 5. Recent History
               _buildHistorySection(),
             ],
           ),
@@ -53,9 +58,9 @@ class HomePage extends GetView<HomeController> {
           child: Text(
             'FITTIM',
             style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 2.0, // Tracking 0.15em ~ 2.0
               color: AppColors.textPrimary,
             ),
           ),
@@ -66,12 +71,17 @@ class HomePage extends GetView<HomeController> {
           child: GestureDetector(
             onTap: () => Get.find<MainController>().changeIndex(4), // MyPage
             child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border),
+                color: Color(0xFFF7F7F7),
               ),
-              child: const Icon(Icons.person_outline, size: 20),
+              child: const Icon(
+                Icons.person_outline,
+                size: 16,
+                color: Color(0xFF1A1A1A),
+              ),
             ),
           ),
         ),
@@ -79,28 +89,146 @@ class HomePage extends GetView<HomeController> {
     );
   }
 
-  Widget _buildMainButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: controller.onCreateFittim,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          '오늘의 FITTIM 만들기',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+  Widget _buildWeatherSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF74A8FF).withOpacity(0.1),
+            const Color(0xFF74A8FF).withOpacity(0.05),
+          ],
         ),
       ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              // Icon
+              Obx(() => _getWeatherIcon(controller.weatherCondition.value)),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Temperature
+                  Obx(
+                    () => Text(
+                      '${controller.weatherTemp.value}°C',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w300,
+                        color: const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                  ),
+                  // Description
+                  Obx(
+                    () => Text(
+                      controller.weatherDescription.value,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w300,
+                        color: const Color(0xFF9C9C9C),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Obx(
+            () => Text(
+              controller.currentAddress.value,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w300,
+                color: const Color(0xFF74A8FF),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _getWeatherIcon(String condition) {
+    // Lucide-style icons if possible, or Material equivalents
+    switch (condition) {
+      case 'sunny':
+      case 'clear':
+        return const Icon(
+          Icons.wb_sunny_outlined,
+          color: Color(0xFF74A8FF),
+          size: 24,
+        );
+      case 'rainy':
+      case 'rain':
+        return const Icon(
+          Icons.beach_access,
+          color: Color(0xFF74A8FF),
+          size: 24,
+        ); // cloud-rain approx
+      default:
+        return const Icon(
+          Icons.cloud_outlined,
+          color: Color(0xFF74A8FF),
+          size: 24,
+        );
+    }
+  }
+
+  Widget _buildHeroSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "남들 말고,\n진짜 나를 입는 시간 10초.",
+          style: GoogleFonts.poppins(
+            fontSize: 28,
+            height: 1.3,
+            fontWeight: FontWeight.w300,
+            color: const Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          "FITTIM, Fit ME.",
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w300,
+            letterSpacing: 1.2, // 0.1em
+            color: const Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 32),
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: controller.onCreateFittim,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1A1A1A),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(100), // Full rounded
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              '오늘의 FITTIM 만들기',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+                letterSpacing: -0.15, // -0.01em
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

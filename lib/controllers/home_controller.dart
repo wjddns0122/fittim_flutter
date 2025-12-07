@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+
 import '../core/constants/api_routes.dart';
 import '../data/api_provider.dart';
 import '../ui/pages/fit/result/fit_result_page.dart';
@@ -20,12 +24,116 @@ class HomeController extends GetxController {
   final fitHistoryList = <dynamic>[].obs;
   final isLoading = false.obs;
 
+  // Weather
+  final weatherTemp = '0'.obs;
+  final weatherCondition = 'cloudy'.obs;
+  final weatherDescription = ''.obs;
+  final currentAddress = '서울시 강남구'.obs; // Default placeholder
+  double? _latitude;
+  double? _longitude;
+
   @override
   void onInit() {
     super.onInit();
     selectedSeason = _getInitialSeason().obs;
     _loadUserName();
     fetchFitHistory();
+    fetchCurrentWeather();
+  }
+
+  Future<void> fetchCurrentWeather() async {
+    // 1. Initialize with Defaults (Seoul)
+    _latitude = 37.5665;
+    _longitude = 126.9780;
+    String detectedAddress = "서울특별시 중구 (기본위치)";
+
+    try {
+      // 2. Permission Check
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        print(
+          ">>> [Flutter] Location Error. Using default (Seoul). Permission: $permission",
+        );
+      } else {
+        // 3. Get Position (Real)
+        Position? position;
+        if (!kIsWeb) {
+          try {
+            position = await Geolocator.getLastKnownPosition();
+          } catch (_) {}
+        }
+
+        position ??= await Geolocator.getCurrentPosition(
+          locationSettings: kIsWeb
+              ? const LocationSettings(accuracy: LocationAccuracy.low)
+              : const LocationSettings(
+                  accuracy: LocationAccuracy.medium,
+                  timeLimit: Duration(seconds: 5),
+                ),
+        );
+
+        _latitude = position.latitude;
+        _longitude = position.longitude;
+        print(">>> [Flutter] Current GPS: $_latitude, $_longitude");
+
+        // 4. Get Address (Geocoding) - Only if we have real location
+        if (!kIsWeb) {
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+            _latitude!,
+            _longitude!,
+          );
+          if (placemarks.isNotEmpty) {
+            final place = placemarks.first;
+            String area = place.administrativeArea ?? '';
+            String local = place.subLocality ?? place.locality ?? '';
+            if (area.isNotEmpty || local.isNotEmpty) {
+              detectedAddress = '$area $local'.trim();
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print(">>> [Flutter] Location Error. Using default (Seoul). Details: $e");
+      // Fallback is already set at the start
+    }
+
+    // 5. Update Address Observable
+    currentAddress.value = detectedAddress;
+    print(">>> [Flutter] Final Address: ${currentAddress.value}");
+
+    // 6. Call API (Always runs)
+    try {
+      final token = await _storage.read(key: 'accessToken');
+      if (token == null) return;
+
+      final response = await _apiProvider.dio.get(
+        '${ApiProvider.baseUrl}/api/weather',
+        queryParameters: {'lat': _latitude, 'lon': _longitude},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        weatherTemp.value = data['temperature']?.toString() ?? '18';
+        weatherCondition.value =
+            data['condition']?.toString().toLowerCase() ?? 'cloudy';
+        weatherDescription.value = data['description']?.toString() ?? '구름 많음';
+      }
+    } catch (e) {
+      print('Weather fetch failed: $e');
+      _setDefaultWeather();
+    }
+  }
+
+  void _setDefaultWeather() {
+    weatherTemp.value = '18';
+    weatherCondition.value = 'cloudy';
+    weatherDescription.value = '흐림';
   }
 
   String _getInitialSeason() {
@@ -112,7 +220,9 @@ class HomeController extends GetxController {
         data: {
           'place': _mapPlaceToCode(selectedPlace.value),
           'season': _mapSeasonToEnum(selectedSeason.value),
-          // Add mood if supported by backend
+          // Integrated Weather Info for Gemini
+          'weather':
+              '${currentAddress.value}, ${weatherDescription.value}, ${weatherTemp.value}°C',
         },
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
