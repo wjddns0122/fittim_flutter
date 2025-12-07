@@ -59,9 +59,6 @@ class SignupController extends GetxController {
       // I'll assume /api/auth/check-email or similar exists, or just simulate for now given no doc.
       // Re-reading context: "Implementing Email Verification Flow" ... "Step 1: Request Email Verification"
 
-      print(
-        '[DEBUG] Requesting verification for: ${emailController.text.trim()}',
-      );
       final response = await _apiProvider.dio.post(
         ApiRoutes.authSendCode,
         data: {'email': emailController.text.trim()},
@@ -94,9 +91,7 @@ class SignupController extends GetxController {
 
     try {
       isLoading.value = true;
-      print(
-        '[DEBUG] Verifying code with Email: "${emailController.text.trim()}", Code: "${codeController.text.trim()}"',
-      ); // Debug Log
+      // Debug Log
       final response = await _apiProvider.dio.post(
         ApiRoutes.authVerifyCode,
         data: {
@@ -113,13 +108,9 @@ class SignupController extends GetxController {
         _nextPage();
       }
     } catch (e) {
-      print('❌ 인증 검증 실패: $e');
       String errorMessage = '알 수 없는 오류가 발생했습니다.';
 
       if (e is DioException) {
-        print('❌ 서버 응답 데이터: ${e.response?.data}');
-        print('❌ 서버 응답 코드: ${e.response?.statusCode}');
-
         if (e.response?.data is Map && e.response?.data['message'] != null) {
           errorMessage = e.response?.data['message']; // 백엔드 메시지 표시
         } else {
@@ -147,7 +138,6 @@ class SignupController extends GetxController {
 
     try {
       isLoading.value = true;
-      print('[DEBUG] Completing signup for: ${emailController.text.trim()}');
       final response = await _apiProvider.dio.post(
         ApiRoutes.authSignup,
         data: {

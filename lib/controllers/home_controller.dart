@@ -16,22 +16,24 @@ class HomeController extends GetxController {
   final ApiProvider _apiProvider = ApiProvider();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  // State
+  // #region Observables
   final userName = 'User'.obs;
-  final selectedPlace = '캠퍼스'.obs; // Default
-  final selectedMood = '꾸안꾸'.obs; // Default
+  final selectedPlace = '캠퍼스'.obs;
+  final selectedMood = '꾸안꾸'.obs;
   late final RxString selectedSeason;
   final fitHistoryList = <dynamic>[].obs;
   final isLoading = false.obs;
 
-  // Weather
+  // Weather Observables
   final weatherTemp = '0'.obs;
   final weatherCondition = 'cloudy'.obs;
   final weatherDescription = ''.obs;
-  final currentAddress = '서울시 강남구'.obs; // Default placeholder
+  final currentAddress = '서울시 강남구'.obs;
   double? _latitude;
   double? _longitude;
+  // #endregion
 
+  // #region Lifecycle
   @override
   void onInit() {
     super.onInit();
@@ -40,12 +42,14 @@ class HomeController extends GetxController {
     fetchFitHistory();
     fetchCurrentWeather();
   }
+  // #endregion
 
+  // #region Weather Logic
   Future<void> fetchCurrentWeather() async {
     // 1. Initialize with Defaults (Seoul)
     _latitude = 37.5665;
     _longitude = 126.9780;
-    String detectedAddress = "서울특별시 중구 (기본위치)";
+    String detectedAddress = "서울특별시 중구";
 
     try {
       // 2. Permission Check
@@ -56,8 +60,8 @@ class HomeController extends GetxController {
 
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        print(
-          ">>> [Flutter] Location Error. Using default (Seoul). Permission: $permission",
+        debugPrint(
+          ">>> [Flutter] Location Permission Error: $permission. Using default.",
         );
       } else {
         // 3. Get Position (Real)
@@ -79,7 +83,7 @@ class HomeController extends GetxController {
 
         _latitude = position.latitude;
         _longitude = position.longitude;
-        print(">>> [Flutter] Current GPS: $_latitude, $_longitude");
+        debugPrint(">>> [Flutter] Current GPS: $_latitude, $_longitude");
 
         // 4. Get Address (Geocoding) - Only if we have real location
         if (!kIsWeb) {
@@ -98,13 +102,12 @@ class HomeController extends GetxController {
         }
       }
     } catch (e) {
-      print(">>> [Flutter] Location Error. Using default (Seoul). Details: $e");
-      // Fallback is already set at the start
+      debugPrint(">>> [Flutter] Location Error: $e. Using default.");
     }
 
     // 5. Update Address Observable
     currentAddress.value = detectedAddress;
-    print(">>> [Flutter] Final Address: ${currentAddress.value}");
+    debugPrint(">>> [Flutter] Final Address: ${currentAddress.value}");
 
     // 6. Call API (Always runs)
     try {
@@ -125,7 +128,7 @@ class HomeController extends GetxController {
         weatherDescription.value = data['description']?.toString() ?? '구름 많음';
       }
     } catch (e) {
-      print('Weather fetch failed: $e');
+      debugPrint('Weather fetch failed: $e');
       _setDefaultWeather();
     }
   }
@@ -135,27 +138,11 @@ class HomeController extends GetxController {
     weatherCondition.value = 'cloudy';
     weatherDescription.value = '흐림';
   }
+  // #endregion
 
-  String _getInitialSeason() {
-    final month = DateTime.now().month;
-    if (month >= 3 && month <= 5) return '봄';
-    if (month >= 6 && month <= 8) return '여름';
-    if (month >= 9 && month <= 11) return '가을';
-    return '겨울';
-  }
-
-  Future<void> _loadUserName() async {
-    String? storedName = await _storage.read(key: 'userNickname');
-    if (storedName != null && storedName.isNotEmpty) {
-      userName.value = storedName;
-    } else {
-      userName.value = 'User';
-    }
-  }
-
+  // #region Core Features
   Future<void> fetchFitHistory() async {
     try {
-      // isLoading.value = true; // Optional: don't block UI for history
       final token = await _storage.read(key: 'accessToken');
       if (token == null) return;
 
@@ -165,12 +152,10 @@ class HomeController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        fitHistoryList.value = response.data; // List of objects
+        fitHistoryList.value = response.data;
       }
     } catch (e) {
-      print('Failed to fetch fit history: $e');
-    } finally {
-      // isLoading.value = false;
+      debugPrint('Failed to fetch fit history: $e');
     }
   }
 
@@ -182,7 +167,7 @@ class HomeController extends GetxController {
       // 1. Show Loading Dialog
       Get.dialog(
         PopScope(
-          canPop: false, // Prevent back button
+          canPop: false,
           child: Material(
             color: Colors.transparent,
             child: Center(
@@ -195,9 +180,9 @@ class HomeController extends GetxController {
                   color: Colors.black.withOpacity(0.8),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Column(
+                child: const Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     CircularProgressIndicator(color: Colors.white),
                     SizedBox(height: 16),
                     Text(
@@ -214,13 +199,12 @@ class HomeController extends GetxController {
         barrierDismissible: false,
       );
 
-      // Call Recommendation API directly
+      // Call Recommendation API
       final response = await _apiProvider.dio.post(
         ApiRoutes.fitRecommend,
         data: {
           'place': _mapPlaceToCode(selectedPlace.value),
           'season': _mapSeasonToEnum(selectedSeason.value),
-          // Integrated Weather Info for Gemini
           'weather':
               '${currentAddress.value}, ${weatherDescription.value}, ${weatherTemp.value}°C',
         },
@@ -234,8 +218,6 @@ class HomeController extends GetxController {
 
       if (response.statusCode == 200) {
         final responseData = response.data;
-
-        // Refresh history immediately so it's ready
         await fetchFitHistory();
 
         if (Get.isRegistered<FitController>()) {
@@ -245,18 +227,18 @@ class HomeController extends GetxController {
               responseData,
             );
           } catch (e) {
-            print("Sync error: $e");
+            debugPrint("Sync error: $e");
           }
         }
 
-        // Show Dialog
+        // Show Success Dialog
         Get.dialog(
           Dialog(
             backgroundColor: Colors.transparent,
             insetPadding: const EdgeInsets.symmetric(horizontal: 24),
             child: GestureDetector(
               onTap: () {
-                Get.back(); // Close dialog
+                Get.back();
                 Get.to(() => const FitResultPage(), arguments: responseData);
               },
               child: Container(
@@ -274,13 +256,12 @@ class HomeController extends GetxController {
                   ],
                 ),
                 child: SingleChildScrollView(
-                  // Fix Overflow
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
+                      const Text(
                         '오늘의 추천 코디가 도착했어요!',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
@@ -288,7 +269,6 @@ class HomeController extends GetxController {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      // Image Display
                       AspectRatio(
                         aspectRatio: 3 / 4,
                         child: Container(
@@ -301,9 +281,9 @@ class HomeController extends GetxController {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      Text(
+                      const Text(
                         '터치해서 상세 정보 확인하기',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
                           fontWeight: FontWeight.w500,
@@ -319,14 +299,16 @@ class HomeController extends GetxController {
         );
       }
     } catch (e) {
-      if (Get.isDialogOpen == true) Get.back(); // Close loading if error
-      print('Failed to create fittim: $e');
+      if (Get.isDialogOpen == true) Get.back();
+      debugPrint('Failed to create fittim: $e');
       Get.snackbar('Error', 'Failed to generate fit');
     } finally {
       isLoading.value = false;
     }
   }
+  // #endregion
 
+  // #region Helpers
   String _mapSeasonToEnum(String seasonName) {
     switch (seasonName) {
       case '봄':
@@ -359,10 +341,24 @@ class HomeController extends GetxController {
     }
   }
 
+  String _getInitialSeason() {
+    final month = DateTime.now().month;
+    if (month >= 3 && month <= 5) return '봄';
+    if (month >= 6 && month <= 8) return '여름';
+    if (month >= 9 && month <= 11) return '가을';
+    return '겨울';
+  }
+
+  Future<void> _loadUserName() async {
+    String? storedName = await _storage.read(key: 'userNickname');
+    userName.value = (storedName != null && storedName.isNotEmpty)
+        ? storedName
+        : 'User';
+  }
+
   Widget _buildDialogImage(dynamic data) {
     String imageUrl = '';
     if (data is Map<String, dynamic>) {
-      // Try Outer then Top
       if (data['outer'] != null && data['outer']['imageUrl'] != null) {
         imageUrl = data['outer']['imageUrl'];
       } else if (data['top'] != null && data['top']['imageUrl'] != null) {
@@ -385,4 +381,6 @@ class HomeController extends GetxController {
     if (relativePath.startsWith('http')) return relativePath;
     return '${ApiProvider.baseUrl}$relativePath';
   }
+
+  // #endregion
 }
