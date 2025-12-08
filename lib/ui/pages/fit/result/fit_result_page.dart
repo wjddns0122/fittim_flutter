@@ -207,7 +207,7 @@ class FitResultPage extends GetView<FitResultController> {
           Obx(() {
             final comment = controller.reason.value.isNotEmpty
                 ? controller.reason.value
-                : "AI가 멋진 코디를 추천해드려요! (추천 사유가 여기에 표시됩니다)";
+                : "저장된 추천 사유가 없습니다";
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -50,42 +50,45 @@ class HomePage extends GetView<HomeController> {
 
   // Header: Logo centered, User icon right
   Widget _buildHeader() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Center Logo
-        Center(
-          child: Text(
-            'FITTIM',
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w400,
-              letterSpacing: 2.0, // Tracking 0.15em ~ 2.0
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-        // Right Icon
-        Positioned(
-          right: 0,
-          child: GestureDetector(
-            onTap: () => Get.find<MainController>().changeIndex(4), // MyPage
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFFF7F7F7),
-              ),
-              child: const Icon(
-                Icons.person_outline,
-                size: 16,
-                color: Color(0xFF1A1A1A),
+    return SizedBox(
+      height: 36,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Center Logo
+          Center(
+            child: Text(
+              'FITTIM',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 2.0, // Tracking 0.15em ~ 2.0
+                color: AppColors.textPrimary,
               ),
             ),
           ),
-        ),
-      ],
+          // Right Icon
+          Positioned(
+            right: 0,
+            child: GestureDetector(
+              onTap: () => Get.find<MainController>().changeIndex(4), // MyPage
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFF7F7F7),
+                ),
+                child: const Icon(
+                  Icons.person_outline,
+                  size: 16,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

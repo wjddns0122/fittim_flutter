@@ -299,9 +299,46 @@ class HomeController extends GetxController {
         );
       }
     } catch (e) {
-      if (Get.isDialogOpen == true) Get.back();
+      if (Get.isDialogOpen == true) Get.back(); // Close loading if error
+
+      String title = '코디 생성 실패';
+      String message = '알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+
+      if (e is DioException) {
+        if (e.response != null) {
+          final statusCode = e.response?.statusCode;
+          final data = e.response?.data;
+
+          if (data is Map && data['message'] != null) {
+            message = data['message'].toString();
+          } else if (statusCode == 400) {
+            message = "입력된 정보가 부족하거나 잘못되었습니다.";
+          } else if (statusCode == 401) {
+            message = "인증이 만료되었습니다. 다시 로그인해주세요.";
+          } else if (statusCode == 500) {
+            message = "AI 서버 응답이 지연되거나 오류가 발생했습니다. 잠시 후 시도해주세요.";
+          } else {
+            message = "서버 통신 오류 ($statusCode)";
+          }
+        } else {
+          message = "서버와 연결할 수 없습니다. 네트워 크 상태를 확인해주세요.";
+        }
+      } else {
+        message = "앱 내부 오류: $e";
+      }
+
       debugPrint('Failed to create fittim: $e');
-      Get.snackbar('Error', 'Failed to generate fit');
+
+      Get.snackbar(
+        title,
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline, color: Colors.white),
+      );
     } finally {
       isLoading.value = false;
     }

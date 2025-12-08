@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/fit_controller.dart';
+import '../../controllers/home_controller.dart';
+import '../../data/models/fit_response.dart';
 import '../../controllers/main_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/common_button.dart';
@@ -252,7 +254,7 @@ class FitPage extends GetView<FitController> {
                   ),
                 ),
 
-                // Recent Outfits (Horizontal Scroll Placeholder)
+                // Recent Outfits (Horizontal Scroll from HomeController History)
                 Padding(
                   padding: const EdgeInsets.only(left: 32, bottom: 32),
                   child: Column(
@@ -270,14 +272,67 @@ class FitPage extends GetView<FitController> {
                       const SizedBox(height: 16),
                       SizedBox(
                         height: 200,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _buildRecentOutfitCard('오늘의 캠퍼스 룩'),
-                            _buildRecentOutfitCard('데이트 코디'),
-                            _buildRecentOutfitCard('미니멀 출근룩'),
-                          ],
-                        ),
+                        child: Obx(() {
+                          // Access HomeController safely
+                          if (!Get.isRegistered<HomeController>()) {
+                            return const Center(child: Text("기록을 불러올 수 없습니다."));
+                          }
+                          final homeCtrl = Get.find<HomeController>();
+                          final history = homeCtrl.fitHistoryList;
+
+                          if (history.isEmpty) {
+                            return const Center(
+                              child: Text(
+                                "아직 생성된 코디가 없습니다.",
+                                style: TextStyle(
+                                  color: AppColors.textHint,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: history.length,
+                            itemBuilder: (context, index) {
+                              final item = history[index];
+                              // Safely extract data. item might be Map or FitResponse object depending on API parsing.
+                              // Based on previous logs, it might be FitResponse or Map.
+                              // HomeController parses generic response.
+                              // Let's assume Map or use helper if needed.
+                              // Actually HomeController.fitHistoryList is filled with response.data which is List<dynamic>.
+                              // Typically detailed maps.
+
+                              String imageUrl = '';
+                              String title = '생성된 코디';
+
+                              if (item is Map) {
+                                imageUrl = item['imageUrl']?.toString() ?? '';
+                                title =
+                                    '${item['place'] ?? ''} ${item['season'] ?? ''} 코디';
+                              }
+                              // If it's FitResponse object
+                              else if (item is FitResponse) {
+                                imageUrl = item.imageUrl ?? '';
+                                title =
+                                    '${item.place ?? ''} ${item.season ?? ''} 코디';
+                              }
+
+                              if (title.trim() == ' 코디') title = '데일리 코디';
+
+                              return GestureDetector(
+                                onTap: () {
+                                  Get.to(
+                                    () => const FitResultPage(),
+                                    arguments: item,
+                                  );
+                                },
+                                child: _buildRecentOutfitCard(title, imageUrl),
+                              );
+                            },
+                          );
+                        }),
                       ),
                     ],
                   ),
@@ -290,7 +345,7 @@ class FitPage extends GetView<FitController> {
     );
   }
 
-  Widget _buildRecentOutfitCard(String title) {
+  Widget _buildRecentOutfitCard(String title, String imageUrl) {
     return Container(
       width: 150,
       margin: const EdgeInsets.only(right: 12),
@@ -310,9 +365,18 @@ class FitPage extends GetView<FitController> {
                   top: Radius.circular(16),
                 ),
               ),
-              child: const Center(
-                child: Icon(Icons.image, color: AppColors.textHint),
-              ),
+              clipBehavior: Clip.antiAlias,
+              child: imageUrl.isNotEmpty
+                  ? Image.network(
+                      Get.find<HomeController>().getFullImageUrl(imageUrl),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Center(
+                        child: Icon(Icons.checkroom, color: AppColors.textHint),
+                      ),
+                    )
+                  : const Center(
+                      child: Icon(Icons.image, color: AppColors.textHint),
+                    ),
             ),
           ),
           Padding(
@@ -320,6 +384,8 @@ class FitPage extends GetView<FitController> {
             child: Text(
               title,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w300),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -330,6 +396,13 @@ class FitPage extends GetView<FitController> {
   // === RESULT VIEW (Fit Tab) ===
   Widget _buildResultView(BuildContext context) {
     return Obx(() {
+      // Access HomeController for full history
+      if (!Get.isRegistered<HomeController>()) {
+        return const Center(child: Text("데이터를 불러올 수 없습니다."));
+      }
+      final homeCtrl = Get.find<HomeController>();
+      final history = homeCtrl.fitHistoryList;
+
       // If loading
       if (controller.isLoading.value) {
         return const Center(
@@ -337,7 +410,7 @@ class FitPage extends GetView<FitController> {
         );
       }
       // If no data
-      if (controller.recommendation.value == null) {
+      if (history.isEmpty) {
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -366,10 +439,7 @@ class FitPage extends GetView<FitController> {
         );
       }
 
-      // Data Available
-      final result = controller.recommendation.value!;
-      final mainImage = result.outer?.imageUrl ?? result.top?.imageUrl ?? '';
-      // Mimicking OutfitResultsScreen header and list
+      // Data Available - Show List of Cards
       return Column(
         children: [
           // Header
@@ -404,45 +474,86 @@ class FitPage extends GetView<FitController> {
           const Divider(height: 1, color: AppColors.border),
 
           Expanded(
-            child: ListView(
+            child: ListView.separated(
               padding: const EdgeInsets.all(24),
-              children: [
-                const Text(
-                  '오늘을 위한 코디를 준비했어요.', // Intro
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w300,
-                    color: AppColors.textHint,
+              itemCount: history.length + 1, // +1 for the button at the end
+              separatorBuilder: (_, __) => const SizedBox(height: 24),
+              itemBuilder: (context, index) {
+                // Last item is the Regenerate Button
+                if (index == history.length) {
+                  return CommonButton(
+                    text: '다시 생성',
+                    onPressed: controller.getRecommendation,
+                    backgroundColor: Colors.white,
+                    textColor: AppColors.textPrimary,
+                    isRoundedFull: true,
+                  );
+                }
+
+                // Render History Card
+                // Reverse index to show newest first? List is usually append.
+                // If history list is [old, ..., new], user usually wants newest first.
+                // Let's assume history[0] is newest or oldest.
+                // Typically "recent history" implies newest.
+                // Let's reverse access: history[history.length - 1 - index]
+                // Or just iterate standard. Let's assume standard order.
+                final item = history[history.length - 1 - index];
+
+                String imageUrl = '';
+                String place = '';
+                String season = '';
+                List<String> categories = [];
+
+                if (item is Map) {
+                  imageUrl = item['imageUrl']?.toString() ?? '';
+                  place = item['place']?.toString() ?? '';
+                  season = item['season']?.toString() ?? '';
+
+                  // Extract items
+                  if (item['outer'] != null)
+                    categories.add(item['outer']['category'] ?? '아우터');
+                  if (item['top'] != null)
+                    categories.add(item['top']['category'] ?? '상의');
+                  if (item['bottom'] != null)
+                    categories.add(item['bottom']['category'] ?? '하의');
+
+                  if (imageUrl.isEmpty) {
+                    // Try finding image in items
+                    if (item['outer'] != null)
+                      imageUrl = item['outer']['imageUrl'] ?? '';
+                    else if (item['top'] != null)
+                      imageUrl = item['top']['imageUrl'] ?? '';
+                  }
+                } else if (item is FitResponse) {
+                  imageUrl = item.imageUrl ?? '';
+                  place = item.place ?? '';
+                  season = item.season ?? '';
+
+                  if (item.outer != null) categories.add(item.outer!.category);
+                  if (item.top != null) categories.add(item.top!.category);
+                  if (item.bottom != null)
+                    categories.add(item.bottom!.category);
+
+                  if (imageUrl.isEmpty) {
+                    if (item.outer != null)
+                      imageUrl = item.outer!.imageUrl;
+                    else if (item.top != null)
+                      imageUrl = item.top!.imageUrl;
+                  }
+                }
+
+                return GestureDetector(
+                  onTap: () {
+                    Get.to(() => const FitResultPage(), arguments: item);
+                  },
+                  child: _buildResultCard(
+                    title: '오늘의 $place 룩',
+                    items: categories,
+                    tags: ['#$place', '#$season'],
+                    imageUrl: imageUrl,
                   ),
-                ),
-                const SizedBox(height: 20),
-
-                // Card 1
-                _buildResultCard(
-                  title: '오늘의 ${controller.selectedPlace.value} 룩',
-                  items: [
-                    if (result.outer != null) result.outer!.category,
-                    if (result.top != null) result.top!.category,
-                    if (result.bottom != null) result.bottom!.category,
-                  ],
-                  tags: [
-                    '#${controller.selectedPlace.value}',
-                    '#${controller.selectedSeason.value}',
-                  ],
-                  imageUrl: mainImage,
-                ),
-
-                const SizedBox(height: 24),
-
-                // Regenerate Button
-                CommonButton(
-                  text: '다시 생성',
-                  onPressed: controller.getRecommendation,
-                  backgroundColor: Colors.white,
-                  textColor: AppColors.textPrimary,
-                  isRoundedFull: true,
-                ),
-              ],
+                );
+              },
             ),
           ),
         ],

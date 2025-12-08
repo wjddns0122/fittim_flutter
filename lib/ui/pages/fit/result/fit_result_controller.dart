@@ -6,8 +6,12 @@ import '../../../../data/api_provider.dart';
 import '../../../../data/models/wardrobe_item.dart';
 
 class FitResultController extends GetxController {
-  final ApiProvider _apiProvider = ApiProvider();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final ApiProvider _apiProvider;
+  final FlutterSecureStorage _storage;
+
+  FitResultController({ApiProvider? apiProvider, FlutterSecureStorage? storage})
+    : _apiProvider = apiProvider ?? ApiProvider(),
+      _storage = storage ?? const FlutterSecureStorage();
 
   // #region Observables
   final mainImageUrl = ''.obs;
@@ -33,9 +37,27 @@ class FitResultController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _parseArguments();
+    initData(Get.arguments);
+  }
 
-    if (generatedItems.isEmpty && fitId.value != null) {
+  void initData(dynamic args) {
+    debugPrint('>>> [FitResultController] Init Args: $args');
+    _parseArguments(args);
+
+    // Fetch details if items are missing OR if reason is missing/default
+    bool missingReason =
+        reason.value.isEmpty ||
+        reason.value == "저장된 추천 사유가 없습니다." ||
+        reason.value == "AI가 추천 사유를 생성하지 못했습니다.";
+
+    debugPrint(
+      '>>> [FitResultController] Missing Reason? $missingReason (Current: ${reason.value})',
+    );
+
+    if ((generatedItems.isEmpty || missingReason) && fitId.value != null) {
+      debugPrint(
+        '>>> [FitResultController] Fetching details for ID: ${fitId.value}',
+      );
       _fetchFitDetail(fitId.value!);
     }
   }
@@ -53,6 +75,8 @@ class FitResultController extends GetxController {
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
+      debugPrint('>>> [FitResultController] Detail Response: ${response.data}');
+
       if (response.statusCode == 200) {
         _parseFromMap(response.data);
       }
@@ -65,8 +89,7 @@ class FitResultController extends GetxController {
   // #endregion
 
   // #region Parsing Logic
-  void _parseArguments() {
-    final args = Get.arguments;
+  void _parseArguments(dynamic args) {
     if (args == null) return;
 
     try {
@@ -81,6 +104,7 @@ class FitResultController extends GetxController {
   }
 
   void _parseFromMap(Map<String, dynamic> data) {
+    debugPrint('>>> [FitResultController] Parsing from Map: $data');
     // Extract ID if present
     if (data['id'] != null) {
       fitId.value = data['id'] is int
@@ -114,10 +138,16 @@ class FitResultController extends GetxController {
     season.value = data['season']?.toString() ?? '';
     reason.value = data['reason']?.toString() ?? "AI가 추천 사유를 생성하지 못했습니다.";
 
+    debugPrint(
+      '>>> [FitResultController] Reason after map parse: ${reason.value}',
+    );
+
     _setMainImage();
   }
 
   void _parseFromHistory(dynamic history) {
+    debugPrint('>>> [FitResultController] History Data: $history');
+
     final idVal = _getField(history, 'id');
     if (idVal != null) {
       fitId.value = int.tryParse(idVal);
@@ -127,6 +157,10 @@ class FitResultController extends GetxController {
     mood.value = _getField(history, 'mood') ?? '';
     season.value = _getField(history, 'season') ?? '';
     reason.value = _getField(history, 'reason') ?? "저장된 추천 사유가 없습니다.";
+
+    debugPrint(
+      '>>> [FitResultController] Reason parsed from history: ${reason.value}',
+    );
 
     final List<WardrobeItem> items = [];
 
@@ -197,7 +231,9 @@ class FitResultController extends GetxController {
   String? _getField(dynamic object, String fieldName) {
     try {
       if (object is Map) {
-        return object[fieldName]?.toString();
+        final val = object[fieldName]?.toString();
+        debugPrint('>>> [FitResultController] _getField(Map) $fieldName: $val');
+        return val;
       }
       switch (fieldName) {
         case 'id':
@@ -209,13 +245,18 @@ class FitResultController extends GetxController {
         case 'season':
           return object.season?.toString();
         case 'reason':
-          return object.reason?.toString();
+          final val = object.reason?.toString();
+          debugPrint(
+            '>>> [FitResultController] _getField(Object) reason: $val',
+          );
+          return val;
         case 'imageUrl':
           return object.imageUrl?.toString();
         default:
           return null;
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('>>> [FitResultController] _getField Error ($fieldName): $e');
       return null;
     }
   }
