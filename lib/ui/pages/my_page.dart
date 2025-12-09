@@ -4,6 +4,7 @@ import '../../controllers/user_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/info_card.dart';
 import '../../core/widgets/style_chip.dart';
+import 'profile/edit_profile_page.dart';
 
 class MyPage extends GetView<UserController> {
   const MyPage({super.key});
@@ -13,15 +14,6 @@ class MyPage extends GetView<UserController> {
     if (!Get.isRegistered<UserController>()) {
       Get.put(UserController());
     }
-
-    // Mock Data to match React
-    final userInfo = [
-      {'label': '키', 'value': '175cm'},
-      {'label': '몸무게', 'value': '68kg'},
-      {'label': '체형', 'value': '보통'},
-    ];
-    final preferredStyles = ['미니멀', '스트릿', '꾸안꾸', '페미닌', '캐주얼'];
-    final preferredMalls = ['무신사', '에이블리', '지그재그', '29CM', 'W컨셉'];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -126,33 +118,73 @@ class MyPage extends GetView<UserController> {
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                              Text(
-                                '편집',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w300,
-                                  color: AppColors.textHint,
+                              GestureDetector(
+                                onTap: () =>
+                                    Get.to(() => const EditProfilePage()),
+                                child: const Text(
+                                  '편집',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w300,
+                                    color: AppColors.textHint,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          Row(
-                            children: userInfo
-                                .map(
-                                  (info) => Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      child: InfoCard(
-                                        label: info['label']!,
-                                        value: info['value']!,
-                                      ),
+                          const SizedBox(height: 16),
+                          Obx(
+                            () => Row(
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    child: InfoCard(
+                                      label: '키',
+                                      value: controller.height.value.isNotEmpty
+                                          ? '${controller.height.value}cm'
+                                          : '-',
                                     ),
                                   ),
-                                )
-                                .toList(),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    child: InfoCard(
+                                      label: '몸무게',
+                                      value: controller.weight.value.isNotEmpty
+                                          ? '${controller.weight.value}kg'
+                                          : '-',
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    child: InfoCard(
+                                      label: '체형',
+                                      value:
+                                          controller.bodyType.value.isNotEmpty
+                                          ? ({
+                                                  'SLIM': '마름',
+                                                  'AVERAGE': '보통',
+                                                  'CHUBBY': '통통',
+                                                  'MUSCULAR': '근육질',
+                                                }[controller.bodyType.value] ??
+                                                '보통')
+                                          : '-',
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -181,12 +213,14 @@ class MyPage extends GetView<UserController> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: preferredStyles
-                                .map((s) => StyleChip(label: s))
-                                .toList(),
+                          Obx(
+                            () => Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: controller.preferredStyles
+                                  .map((s) => StyleChip(label: s))
+                                  .toList(),
+                            ),
                           ),
                           const SizedBox(height: 24),
                           Text(
@@ -198,12 +232,14 @@ class MyPage extends GetView<UserController> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: preferredMalls
-                                .map((s) => StyleChip(label: s))
-                                .toList(),
+                          Obx(
+                            () => Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: controller.preferredMalls
+                                  .map((s) => StyleChip(label: s))
+                                  .toList(),
+                            ),
                           ),
                         ],
                       ),
