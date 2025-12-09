@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../controllers/wardrobe_controller.dart';
 import '../../core/theme/app_colors.dart';
+import 'wardrobe/add_clothing_page.dart';
+import 'wardrobe/wardrobe_detail_page.dart';
 
 class WardrobePage extends GetView<WardrobeController> {
   const WardrobePage({super.key});
@@ -104,54 +106,60 @@ class WardrobePage extends GetView<WardrobeController> {
                       controller.items.length, // Filter is done via API now
                   itemBuilder: (context, index) {
                     final item = controller.items[index];
-                    return Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: const Color(0xFFF7F7F7),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Stack(
-                          children: [
-                            Image.network(
-                              controller.getFullImageUrl(item.imageUrl),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const SizedBox(
-                                  height: 150,
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.image_not_supported,
-                                      color: Color(0xFFCCCCCC),
-                                    ),
+                    return GestureDetector(
+                      onTap: () => Get.to(() => WardrobeDetailPage(item: item)),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: const Color(0xFFF7F7F7),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Stack(
+                            children: [
+                              Hero(
+                                tag: 'wardrobe_${item.id}',
+                                child: Image.network(
+                                  controller.getFullImageUrl(item.imageUrl),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const SizedBox(
+                                      height: 150,
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          color: Color(0xFFCCCCCC),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              // Optional Overlay
+                              Positioned(
+                                bottom: 12,
+                                left: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
                                   ),
-                                );
-                              },
-                            ),
-                            // Optional Overlay
-                            Positioned(
-                              bottom: 12,
-                              left: 12,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.6),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  item.season,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.6),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    item.season,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -213,94 +221,26 @@ class WardrobePage extends GetView<WardrobeController> {
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
               title: const Text("사진 촬영"),
-              onTap: () {
+              onTap: () async {
                 Get.back();
-                _showUploadDialog(context, ImageSource.camera);
+                final file = await controller.pickImage(ImageSource.camera);
+                if (file != null) {
+                  Get.to(() => AddClothingPage(imageFile: file));
+                }
               },
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
               title: const Text("갤러리에서 선택"),
-              onTap: () {
+              onTap: () async {
                 Get.back();
-                _showUploadDialog(context, ImageSource.gallery);
+                final file = await controller.pickImage(ImageSource.gallery);
+                if (file != null) {
+                  Get.to(() => AddClothingPage(imageFile: file));
+                }
               },
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  void _showUploadDialog(BuildContext context, ImageSource source) async {
-    final file = await controller.pickImage(source);
-    if (file == null) return;
-
-    final category = '상의'.obs;
-    final season = '봄'.obs;
-
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                '새 옷 등록',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              // Category Dropdown
-              Obx(
-                () => DropdownButtonFormField<String>(
-                  initialValue: category.value,
-                  decoration: const InputDecoration(
-                    labelText: '카테고리',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: ['상의', '하의', '아우터', '원피스', '신발', '가방', '악세사리']
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                      .toList(),
-                  onChanged: (v) => category.value = v!,
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Season Dropdown
-              Obx(
-                () => DropdownButtonFormField<String>(
-                  initialValue: season.value,
-                  decoration: const InputDecoration(
-                    labelText: '계절',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: ['봄', '여름', '가을', '겨울', '사계절']
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                      .toList(),
-                  onChanged: (v) => season.value = v!,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () =>
-                    controller.uploadItem(file, category.value, season.value),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  '등록하기',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

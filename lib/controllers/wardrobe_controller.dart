@@ -79,14 +79,16 @@ class WardrobeController extends GetxController {
     }
   }
 
-  Future<void> uploadItem(
-    XFile imageFile,
-    String category,
-    String season,
-  ) async {
+  Future<void> uploadItem({
+    required XFile imageFile,
+    required String name,
+    required String brand,
+    required String category,
+    required List<String> seasons,
+    required List<String> colors,
+  }) async {
     try {
       isLoading.value = true;
-      // Fixed: Check 'accessToken'
       final token = await _storage.read(key: 'accessToken');
 
       if (token == null) {
@@ -108,13 +110,16 @@ class WardrobeController extends GetxController {
       final seasonMap = {
         '봄': 'SPRING',
         '여름': 'SUMMER',
-        '가을': 'AUTUMN',
+        '가을': 'FALL',
         '겨울': 'WINTER',
         '사계절': 'ALL',
       };
 
       final categoryCode = categoryMap[category] ?? 'ETC';
-      final seasonCode = seasonMap[season] ?? 'ALL';
+      final seasonCodes = seasons.map((s) => seasonMap[s] ?? 'ALL').toList();
+      final String legacySeason = seasonCodes.isNotEmpty
+          ? seasonCodes.first
+          : 'ALL';
 
       final bytes = await imageFile.readAsBytes();
       final String fileName = imageFile.name;
@@ -122,7 +127,11 @@ class WardrobeController extends GetxController {
       FormData formData = FormData.fromMap({
         'image': MultipartFile.fromBytes(bytes, filename: fileName),
         'category': categoryCode,
-        'season': seasonCode,
+        'season': legacySeason, // Legacy field
+        'name': name,
+        'brand': brand,
+        'seasons': seasonCodes,
+        'colors': colors,
       });
 
       final response = await _dio.post(
@@ -132,7 +141,7 @@ class WardrobeController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.back();
+        Get.back(); // Close AddClothingPage
         Get.snackbar('성공', '옷이 등록되었습니다.');
 
         await fetchItems();
